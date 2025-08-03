@@ -3,11 +3,12 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from core import models
 from django.utils.translation import gettext_lazy as _
 
+
 class UserAdmin(BaseUserAdmin):
     ordering = ['id']
-    list_display = ['email', 'name']
+    list_display = ['email', 'name', 'phone_number']
     fieldsets = (
-        (None, {'fields': ('email', 'password')}),
+        (None, {'fields': ('email', 'password', 'phone_number')}),
         (
            _('Permissions'),
            {
@@ -29,6 +30,7 @@ class UserAdmin(BaseUserAdmin):
                 'password1',
                 'password2',
                 'name',
+                'phone_number',
                 'is_active',
                 'is_staff',
                 'is_superuser',
