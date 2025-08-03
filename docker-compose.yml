@@ -1,0 +1,41 @@
+version: '3'
+
+services:
+  backend:
+    build: ./backend
+    container_name: diplom_backend
+    volumes:
+      - ./backend:/app
+      - ./backend/media:/app/media
+      - ./backend/static:/app/static
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    restart: on-failure  
+    depends_on:
+      - db
+    command: ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+
+  db:
+    image: postgres
+    container_name: diplom_db
+    env_file:
+    - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  frontend:
+    build: ./frontend
+    container_name: diplom_frontend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+    - "5173:5173"
+    command: ["npm", "run", "dev", "--", "--host"]
+
+volumes:
+  postgres_data:
