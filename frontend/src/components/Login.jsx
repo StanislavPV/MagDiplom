@@ -1,0 +1,69 @@
+import React, { useState } from 'react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faSpinner } from '@fortawesome/free-solid-svg-icons'
+import axios from 'axios'
+import { useNavigate } from 'react-router-dom'
+import { AuthContext } from '../AuthProvider'
+import { useContext } from 'react'
+
+const Login = () => {
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const [error, setError] = useState('');
+  const { isLoggedIn, setIsLoggedIn } = useContext(AuthContext);
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    const userData = { email, password };
+
+    try {
+      const response = await axios.post('http://0.0.0.0:8000/api/login/', userData);
+      localStorage.setItem('token', response.data.access);
+      localStorage.setItem('token', response.data.refresh);
+      console.log('Login successful');
+      setIsLoggedIn(true);
+      navigate('/');
+    } catch (error) {
+      console.error('Невірні дані:', error.response.data);
+      setError('Невірні дані для входу');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <>
+      <div className='container'>
+        <div className='row justify-content-center'>
+          <div className='col-md-6 bg-light p-5 rounded'>
+            <h3 className='text-center'>Логін</h3>
+            <form onSubmit={handleLogin}>
+              <div className='mb-3'>
+                <input type='email' className='form-control mb-3' placeholder='Електронна пошта' value={email} onChange={(e) => setEmail(e.target.value)} />
+              </div>
+              <div className='mb-3'>
+                <input type='password' className='form-control mb-3' placeholder='Пароль' value={password} onChange={(e) => setPassword(e.target.value)} />
+              </div>
+              {error && <div className='text-danger'>{error}</div>}
+              {loading ? (
+                <button type='submit' className='btn btn-primary mt-3 w-100' disabled>
+                  <FontAwesomeIcon icon={faSpinner} spin /> Зачекайте...
+                </button>
+              ) : (
+                <button type='submit' className='btn btn-primary mt-3 w-100'>Залогінитись</button>
+              )}
+
+            </form>
+          </div>
+        </div>
+      </div>
+    </>
+  )
+}
+
+export default Login

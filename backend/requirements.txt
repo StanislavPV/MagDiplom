@@ -5,3 +5,5 @@ matplotlib
 tensorflow
 keras
 pillow
+django-cors-headers
+djangorestframework-simplejwt
