@@ -7,3 +7,4 @@ keras
 pillow
 django-cors-headers
 djangorestframework-simplejwt
+django-filter

@@ -23,11 +23,11 @@ const Login = () => {
 
     try {
       const response = await axios.post('http://0.0.0.0:8000/api/login/', userData);
-      localStorage.setItem('token', response.data.access);
-      localStorage.setItem('token', response.data.refresh);
+      localStorage.setItem('accessToken', response.data.access);
+      localStorage.setItem('refreshToken', response.data.refresh);
       console.log('Login successful');
       setIsLoggedIn(true);
-      navigate('/');
+ 
     } catch (error) {
       console.error('Невірні дані:', error.response.data);
       setError('Невірні дані для входу');

@@ -1,16 +1,17 @@
-import { useState } from 'react'
-import './assets/css/style.css'
-import Header from './components/Header'
+import './App.css'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Main from './components/Main'
+import Header from './components/Header'
 import Footer from './components/Footer'
 import Register from './components/Register'
 import Login from './components/Login'
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import BookDetail from './components/BookDetail'
+import Profile from './components/Profile'
 import AuthProvider from './AuthProvider'
+import PrivateRoute from './PrivateRoute'
+import PublicRoute from './PublicRoute'
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
     <>
       <AuthProvider>
@@ -18,8 +19,10 @@ function App() {
           <Header />
           <Routes>
             <Route path='/' element={<Main />} />
-            <Route path='/register' element={<Register />} />
-            <Route path='/login' element={<Login />} />
+            <Route path='/books/:id' element={<BookDetail />} />
+            <Route path='/profile' element={<PrivateRoute><Profile /></PrivateRoute>} />
+            <Route path='/register' element={<PublicRoute><Register /></PublicRoute>} />
+            <Route path='/login' element={<PublicRoute><Login /></PublicRoute>} />
           </Routes>
           <Footer />
         </BrowserRouter>

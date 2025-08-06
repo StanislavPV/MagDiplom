@@ -1,7 +1,9 @@
-import React, { useState } from 'react'
+import React, { useState, useContext } from 'react'
 import axios from 'axios'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faSpinner } from '@fortawesome/free-solid-svg-icons'
+import { useNavigate } from 'react-router-dom'
+import { AuthContext } from '../AuthProvider'
 
 const Register = () => {
     const [username, setUsername] = useState('');
@@ -12,6 +14,9 @@ const Register = () => {
     const [passwordConfirm, setPasswordConfirm] = useState('');
     const [success, setSuccess] = useState(false);
     const [loading, setLoading] = useState(false);
+
+    const navigate = useNavigate();
+    const { setIsLoggedIn } = useContext(AuthContext);
 
     const handleRegistration = async (e) => {
         e.preventDefault();
@@ -26,12 +31,19 @@ const Register = () => {
 
         try {
             const response = await axios.post('http://0.0.0.0:8000/api/register/', userData);
-            console.log('Registration successful:', response.data);
             setErrors({});
             setSuccess(true);
+
+            // Автоматичний логін після реєстрації
+            const loginData = { email, password };
+            const loginResponse = await axios.post('http://0.0.0.0:8000/api/login/', loginData);
+            localStorage.setItem('accessToken', loginResponse.data.access);
+            localStorage.setItem('refreshToken', loginResponse.data.refresh);
+            setIsLoggedIn(true);
+
         } catch (error) {
-            setErrors(error.response.data);
-            console.error('Error during registration:', error.response.data);
+            setErrors(error.response?.data || {});
+            console.error('Error during registration:', error.response?.data);
         } finally {
             setLoading(false);
         }
