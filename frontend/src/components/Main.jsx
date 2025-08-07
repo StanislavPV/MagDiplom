@@ -71,14 +71,32 @@ const Main = () => {
     }
   }
 
-  const buyNow = (bookId) => {
+  const buyNow = async (bookId) => {
     if (!isLoggedIn) {
       showNotification('Увійдіть в систему для покупки', 'warning')
       setTimeout(() => navigate('/login'), 1500)
       return
     }
-    // Navigate to checkout with specific book
-    navigate(`/checkout?book=${bookId}`)
+
+    try {
+      // Спочатку додаємо книжку до кошика
+      await axiosInstance.post('/cart/add/', {
+        book: bookId,
+        quantity: 1
+      })
+      
+      // Оновлюємо кошик в хедері
+      window.dispatchEvent(new CustomEvent('cartUpdated'))
+      
+      // Показуємо повідомлення
+      showNotification('✅ Книгу додано до кошика!', 'success')
+      
+      // Переходимо до оформлення замовлення (тепер з кошика)
+      navigate('/checkout')
+    } catch (error) {
+      console.error('Error adding to cart before checkout:', error)
+      showNotification('❌ Помилка при додаванні до кошика', 'error')
+    }
   }
 
   const renderStars = (rating) => {
@@ -147,7 +165,6 @@ const Main = () => {
                         src={book.image}
                         className="card-img-top book-cover"
                         alt={book.title}
-                        style={{ cursor: 'pointer' }}
                       />
                     ) : (
                       <div className="card-img-top book-cover-placeholder d-flex align-items-center justify-content-center">
@@ -201,36 +218,27 @@ const Main = () => {
 
                   <div className="mt-auto">
                     {book.price && (
-                      <p className="card-text fw-bold text-success mb-2">
+                      <p className="card-text fw-bold text-success mb-3">
                         <i className="fas fa-hryvnia-sign"></i> {book.price} грн
                       </p>
                     )}
 
-                    <div className="d-grid gap-1">
-                      <Link
-                        to={`/books/${book.id}`}
-                        className="btn btn-outline-primary btn-sm"
-                      >
-                        <i className="fas fa-eye"></i> Детальніше
-                      </Link>
-                      
-                      {isLoggedIn && book.is_available && (
-                        <>
-                          <button
-                            onClick={() => addToCart(book.id)}
-                            className="btn btn-success btn-sm"
-                          >
-                            <i className="fas fa-cart-plus"></i> До кошика
-                          </button>
-                          <button
-                            onClick={() => buyNow(book.id)}
-                            className="btn btn-primary btn-sm"
-                          >
-                            <i className="fas fa-bolt"></i> Купити зараз
-                          </button>
-                        </>
-                      )}
-                    </div>
+                    {isLoggedIn && book.is_available && (
+                      <div className="d-grid gap-2">
+                        <button
+                          onClick={() => addToCart(book.id)}
+                          className="btn btn-success btn-sm"
+                        >
+                          <i className="fas fa-cart-plus"></i> До кошика
+                        </button>
+                        <button
+                          onClick={() => buyNow(book.id)}
+                          className="btn btn-primary btn-sm"
+                        >
+                          <i className="fas fa-bolt"></i> Купити зараз
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

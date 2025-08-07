@@ -87,13 +87,32 @@ const BookDetail = () => {
         }
     }
 
-    const buyNow = () => {
+    const buyNow = async () => {
         if (!isLoggedIn) {
             showNotification('Увійдіть в систему для покупки', 'warning')
             setTimeout(() => navigate('/login'), 1500)
             return
         }
-        navigate(`/checkout?book=${id}`)
+
+        try {
+            // Спочатку додаємо книжку до кошика
+            await axiosInstance.post('/cart/add/', {
+                book: parseInt(id),
+                quantity: 1
+            })
+            
+            // Оновлюємо кошик в хедері
+            window.dispatchEvent(new CustomEvent('cartUpdated'))
+            
+            // Показуємо повідомлення
+            showNotification('✅ Книгу додано до кошика!', 'success')
+            
+            // Переходимо до оформлення замовлення (тепер з кошика)
+            navigate('/checkout')
+        } catch (error) {
+            console.error('Error adding to cart before checkout:', error)
+            showNotification('❌ Помилка при додаванні до кошика', 'error')
+        }
     }
 
     const handleWishlistToggle = async () => {
@@ -283,6 +302,30 @@ const BookDetail = () => {
                                     <div className="col-sm-6 mb-2">
                                         <small className="text-muted">Видавництво:</small>
                                         <p>{book.publisher}</p>
+                                    </div>
+                                )}
+                                {book.book_format && (
+                                    <div className="col-sm-6 mb-2">
+                                        <small className="text-muted">Формат:</small>
+                                        <p>{book.book_format}</p>
+                                    </div>
+                                )}
+                                {book.cover_type && (
+                                    <div className="col-sm-6 mb-2">
+                                        <small className="text-muted">Тип обкладинки:</small>
+                                        <p>{book.cover_type}</p>
+                                    </div>
+                                )}
+                                {book.original_name && (
+                                    <div className="col-sm-6 mb-2">
+                                        <small className="text-muted">Оригінальна назва:</small>
+                                        <p>{book.original_name}</p>
+                                    </div>
+                                )}
+                                {book.weight && (
+                                    <div className="col-sm-6 mb-2">
+                                        <small className="text-muted">Вага:</small>
+                                        <p>{book.weight} кг</p>
                                     </div>
                                 )}
                             </div>

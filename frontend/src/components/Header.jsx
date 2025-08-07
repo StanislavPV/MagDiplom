@@ -97,7 +97,7 @@ const Header = () => {
   return (
     <nav className='navbar navbar-expand-lg navbar-light bg-light shadow-sm'>
       <div className='container'>
-        <Link className='navbar-brand fw-bold fs-3' to='/'>
+        <Link className='navbar-brand fw-bold fs-3 text-decoration-none' to='/'>
           📚 BookStore
         </Link>
 
@@ -111,17 +111,9 @@ const Header = () => {
         </button>
 
         <div className="collapse navbar-collapse" id="navbarNav">
-          <ul className="navbar-nav me-auto">
-            <li className="nav-item">
-              <Link className="nav-link" to="/">
-                <i className="fas fa-home"></i> Головна
-              </Link>
-            </li>
-          </ul>
-
           {/* Search and Filter in Header */}
-          <div className="d-flex align-items-center me-3">
-            <form onSubmit={handleSearch} className="d-flex me-2">
+          <div className="d-flex align-items-center me-auto ms-3">
+            <form onSubmit={handleSearch} className="d-flex">
               <select
                 className="form-select me-2"
                 value={selectedGenre}

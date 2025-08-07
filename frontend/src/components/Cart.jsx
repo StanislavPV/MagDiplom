@@ -72,15 +72,13 @@ const Cart = () => {
   }
 
   const clearCart = async () => {
-    if (window.confirm('Очистити весь кошик?')) {
-      try {
-        await axiosInstance.delete('/cart/clear/')
-        fetchCart() // This will now trigger header update
-        showNotification('🗑️ Кошик очищено', 'info')
-      } catch (error) {
-        console.error('Error clearing cart:', error)
-        showNotification('❌ Помилка при очищенні кошика', 'error')
-      }
+    try {
+      await axiosInstance.delete('/cart/clear/')
+      fetchCart() // This will now trigger header update
+      showNotification('🗑️ Кошик очищено', 'info')
+    } catch (error) {
+      console.error('Error clearing cart:', error)
+      showNotification('❌ Помилка при очищенні кошика', 'error')
     }
   }
 
