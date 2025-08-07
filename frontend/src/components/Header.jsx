@@ -11,6 +11,7 @@ const Header = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedGenre, setSelectedGenre] = useState('');
   const [genres, setGenres] = useState([]);
+  const [cartSummary, setCartSummary] = useState({ total_items: 0, total_price: 0 });
 
   useEffect(() => {
     fetchGenres();
@@ -18,7 +19,25 @@ const Header = () => {
     const searchParams = new URLSearchParams(location.search);
     setSearchTerm(searchParams.get('search') || '');
     setSelectedGenre(searchParams.get('genres') || '');
-  }, [location.search]);
+    
+    // Fetch cart summary if logged in
+    if (isLoggedIn) {
+      fetchCartSummary();
+    }
+
+    // Listen for cart updates
+    const handleCartUpdate = () => {
+      if (isLoggedIn) {
+        fetchCartSummary();
+      }
+    };
+
+    window.addEventListener('cartUpdated', handleCartUpdate);
+    
+    return () => {
+      window.removeEventListener('cartUpdated', handleCartUpdate);
+    };
+  }, [location.search, isLoggedIn]);
 
   const fetchGenres = async () => {
     try {
@@ -29,10 +48,21 @@ const Header = () => {
     }
   };
 
+  const fetchCartSummary = async () => {
+    try {
+      const response = await axiosInstance.get('/cart/summary/');
+      setCartSummary(response.data);
+    } catch (error) {
+      console.error('Error fetching cart summary:', error);
+      setCartSummary({ total_items: 0, total_price: 0 });
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     setIsLoggedIn(false);
+    setCartSummary({ total_items: 0, total_price: 0 });
     navigate('/');
   };
 
@@ -50,7 +80,6 @@ const Header = () => {
     const genre = e.target.value;
     setSelectedGenre(genre);
     
-    // Auto-search when genre changes
     const params = new URLSearchParams();
     if (searchTerm.trim()) params.append('search', searchTerm.trim());
     if (genre) params.append('genres', genre);
@@ -134,6 +163,16 @@ const Header = () => {
           <div className="d-flex align-items-center">
             {isLoggedIn ? (
               <>
+                {/* Cart Icon */}
+                <Link to="/cart" className="btn btn-outline-success me-2 position-relative">
+                  <i className="fas fa-shopping-cart"></i>
+                  {cartSummary.total_items > 0 && (
+                    <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                      {cartSummary.total_items}
+                    </span>
+                  )}
+                </Link>
+                
                 <Link to="/profile" className="btn btn-outline-primary me-2">
                   <i className="fas fa-user"></i> Профіль
                 </Link>

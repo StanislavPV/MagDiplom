@@ -1,23 +1,33 @@
 import React, { useState, useEffect, useContext } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { AuthContext } from '../AuthProvider'
 import axiosInstance from '../axiosInstance'
 
 const Profile = () => {
     const { isLoggedIn } = useContext(AuthContext)
+    const location = useLocation()
     const [activeTab, setActiveTab] = useState('wishlist')
     const [wishlist, setWishlist] = useState([])
     const [ratings, setRatings] = useState([])
+    const [orders, setOrders] = useState([])
     const [loading, setLoading] = useState(true)
     const [user, setUser] = useState(null)
 
     useEffect(() => {
+        // Check URL for tab parameter
+        const params = new URLSearchParams(location.search)
+        const tab = params.get('tab')
+        if (tab && ['wishlist', 'ratings', 'orders'].includes(tab)) {
+            setActiveTab(tab)
+        }
+
         if (isLoggedIn) {
             fetchUserData()
             fetchWishlist()
             fetchMyRatings()
+            fetchOrders()
         }
-    }, [isLoggedIn])
+    }, [isLoggedIn, location.search])
 
     const fetchUserData = async () => {
         try {
@@ -45,6 +55,15 @@ const Profile = () => {
             setRatings(response.data.results || response.data)
         } catch (error) {
             console.error('Error fetching ratings:', error)
+        }
+    }
+
+    const fetchOrders = async () => {
+        try {
+            const response = await axiosInstance.get('/orders/')
+            setOrders(response.data.results || response.data)
+        } catch (error) {
+            console.error('Error fetching orders:', error)
         }
     }
 
@@ -124,6 +143,14 @@ const Profile = () => {
                                 onClick={() => setActiveTab('ratings')}
                             >
                                 <i className="fas fa-star"></i> Мої відгуки ({ratings.length})
+                            </button>
+                        </li>
+                        <li className="nav-item">
+                            <button
+                                className={`nav-link ${activeTab === 'orders' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('orders')}
+                            >
+                                <i className="fas fa-shopping-bag"></i> Історія покупок ({orders.length})
                             </button>
                         </li>
                     </ul>
@@ -259,6 +286,64 @@ const Profile = () => {
                                                                     </Link>
                                                                 </div>
                                                             </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'orders' && (
+                        <div className="card">
+                            <div className="card-header">
+                                <h5><i className="fas fa-shopping-bag"></i> Історія покупок</h5>
+                            </div>
+                            <div className="card-body">
+                                {orders.length === 0 ? (
+                                    <div className="text-center">
+                                        <i className="fas fa-shopping-bag fa-3x text-muted mb-3"></i>
+                                        <h5 className="text-muted">У вас поки немає замовлень</h5>
+                                        <p>Зробіть свою першу покупку</p>
+                                        <Link to="/" className="btn btn-primary">Переглянути книги</Link>
+                                    </div>
+                                ) : (
+                                    <div className="row">
+                                        {orders.map(order => (
+                                            <div key={order.id} className="col-12 mb-3">
+                                                <div className="card">
+                                                    <div className="card-header d-flex justify-content-between align-items-center">
+                                                        <div>
+                                                            <h6 className="mb-0">
+                                                                Замовлення #{order.order_number}
+                                                            </h6>
+                                                            <small className="text-muted">
+                                                                {new Date(order.created_at).toLocaleDateString('uk-UA')}
+                                                            </small>
+                                                        </div>
+                                                        <div className="text-end">
+                                                            <span className="badge bg-success">
+                                                                {order.payment_method_display}
+                                                            </span>
+                                                            <div className="fw-bold text-success">
+                                                                <i className="fas fa-hryvnia-sign"></i> {order.total_amount} грн
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="card-body">
+                                                        <div className="d-flex justify-content-between align-items-center">
+                                                            <span>
+                                                                Товарів: <strong>{order.total_items}</strong>
+                                                            </span>
+                                                            <Link
+                                                                to={`/orders/${order.id}`}
+                                                                className="btn btn-outline-primary btn-sm"
+                                                            >
+                                                                <i className="fas fa-eye"></i> Деталі
+                                                            </Link>
                                                         </div>
                                                     </div>
                                                 </div>

@@ -114,3 +114,72 @@
 .fa-star, .fa-star-half-alt {
     margin: 0 1px;
 }
+.alert.position-fixed {
+  animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Smooth button feedback */
+.btn:active {
+  transform: scale(0.98);
+  transition: transform 0.1s;
+}
+
+/* Cart button loading state */
+.btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+.order-detail-item {
+    transition: all 0.2s ease-in-out;
+}
+
+.order-detail-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.order-status-badge {
+    font-size: 0.9em;
+    padding: 0.5em 1em;
+}
+
+.order-summary-card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Book item hover effect */
+.order-item-card {
+    transition: all 0.2s ease-in-out;
+    border: 1px solid #dee2e6;
+}
+
+.order-item-card:hover {
+    border-color: #007bff;
+    box-shadow: 0 4px 12px rgba(0,123,255,0.15);
+}
+
+/* Responsive adjustments for order detail */
+@media (max-width: 768px) {
+    .order-detail-item .col-md-2,
+    .order-detail-item .col-md-6 {
+        text-align: center;
+        margin-bottom: 1rem;
+    }
+    
+    .order-detail-item .col-md-2:last-child {
+        margin-bottom: 0;
+    }
+}

@@ -1,21 +1,21 @@
 import React, { useState, useEffect, useContext } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { AuthContext } from '../AuthProvider'
 import axiosInstance from '../axiosInstance'
 
 const BookDetail = () => {
     const { id } = useParams()
     const { isLoggedIn } = useContext(AuthContext)
+    const navigate = useNavigate()
     const [book, setBook] = useState(null)
     const [ratings, setRatings] = useState([])
     const [userRating, setUserRating] = useState(null)
     const [loading, setLoading] = useState(true)
     const [showRatingForm, setShowRatingForm] = useState(false)
     const [newRating, setNewRating] = useState({ score: 5, review: '' })
+    const [notification, setNotification] = useState(null)
 
     useEffect(() => {
-        console.log('Is logged in:', isLoggedIn)
-        console.log('Access token:', localStorage.getItem('accessToken'))
         fetchBookDetails()
         fetchRatings()
         if (isLoggedIn) {
@@ -23,11 +23,24 @@ const BookDetail = () => {
         }
     }, [id, isLoggedIn])
 
+    // Auto-hide notification after 3 seconds
+    useEffect(() => {
+        if (notification) {
+            const timer = setTimeout(() => {
+                setNotification(null)
+            }, 3000)
+            return () => clearTimeout(timer)
+        }
+    }, [notification])
+
+    const showNotification = (message, type = 'success') => {
+        setNotification({ message, type })
+    }
+
     const fetchBookDetails = async () => {
         try {
             const response = await axiosInstance.get(`/books/${id}/`)
             setBook(response.data)
-            console.log('Book data:', response.data)
         } catch (error) {
             console.error('Error fetching book:', error)
         } finally {
@@ -48,51 +61,74 @@ const BookDetail = () => {
         try {
             const response = await axiosInstance.get(`/books/${id}/rating/`)
             setUserRating(response.data)
-            console.log('User rating:', response.data)
         } catch (error) {
-            // User hasn't rated this book yet
             setUserRating(null)
-            console.log('No user rating found')
         }
     }
 
-    const handleWishlistToggle = async () => {
-        console.log('Attempting to toggle wishlist for book:', id)
-        console.log('Current wishlist status:', book?.is_in_wishlist)
+    const addToCart = async () => {
+        if (!isLoggedIn) {
+            showNotification('Увійдіть в систему, щоб додати книгу до кошика', 'warning')
+            setTimeout(() => navigate('/login'), 1500)
+            return
+        }
 
         try {
-            const response = await axiosInstance.post('/wishlist/toggle/', { book_id: parseInt(id) })
-            console.log('Wishlist response:', response.data)
-            setBook(prev => ({ ...prev, is_in_wishlist: response.data.in_wishlist }))
+            await axiosInstance.post('/cart/add/', {
+                book: parseInt(id),
+                quantity: 1
+            })
+            
+            showNotification('✅ Книгу додано до кошика!', 'success')
+            window.dispatchEvent(new CustomEvent('cartUpdated'))
         } catch (error) {
-            console.error('Error toggling wishlist:', error.response?.data || error)
+            console.error('Error adding to cart:', error)
+            showNotification('❌ Помилка при додаванні до кошика', 'error')
+        }
+    }
+
+    const buyNow = () => {
+        if (!isLoggedIn) {
+            showNotification('Увійдіть в систему для покупки', 'warning')
+            setTimeout(() => navigate('/login'), 1500)
+            return
+        }
+        navigate(`/checkout?book=${id}`)
+    }
+
+    const handleWishlistToggle = async () => {
+        try {
+            const response = await axiosInstance.post('/wishlist/toggle/', { book_id: parseInt(id) })
+            setBook(prev => ({ ...prev, is_in_wishlist: response.data.in_wishlist }))
+            showNotification(
+                response.data.in_wishlist ? '❤️ Додано до обраного' : '💔 Видалено з обраного',
+                'success'
+            )
+        } catch (error) {
+            console.error('Error toggling wishlist:', error)
+            showNotification('❌ Помилка при оновленні списку бажань', 'error')
         }
     }
 
     const handleRatingSubmit = async (e) => {
         e.preventDefault()
-        console.log('Submitting rating:', newRating)
-        console.log('User rating exists:', userRating)
 
         try {
             let response
             if (userRating) {
-                // Update existing rating
-                console.log('Updating existing rating')
                 response = await axiosInstance.put(`/books/${id}/rating/`, newRating)
             } else {
-                // Create new rating
-                console.log('Creating new rating')
                 response = await axiosInstance.post(`/books/${id}/rating/`, newRating)
             }
 
-            console.log('Rating response:', response.data)
             setShowRatingForm(false)
             fetchBookDetails()
             fetchRatings()
             fetchUserRating()
+            showNotification('✅ Відгук успішно збережено!', 'success')
         } catch (error) {
-            console.error('Error submitting rating:', error.response?.data || error)
+            console.error('Error submitting rating:', error)
+            showNotification('❌ Помилка при збереженні відгуку', 'error')
         }
     }
 
@@ -103,8 +139,10 @@ const BookDetail = () => {
                 setUserRating(null)
                 fetchBookDetails()
                 fetchRatings()
+                showNotification('🗑️ Відгук видалено', 'info')
             } catch (error) {
                 console.error('Error deleting rating:', error)
+                showNotification('❌ Помилка при видаленні відгуку', 'error')
             }
         }
     }
@@ -149,6 +187,19 @@ const BookDetail = () => {
 
     return (
         <div className="container mt-4">
+            {/* Notification Toast */}
+            {notification && (
+                <div className={`alert alert-${notification.type === 'success' ? 'success' : notification.type === 'error' ? 'danger' : 'warning'} alert-dismissible fade show position-fixed`} 
+                     style={{ top: '20px', right: '20px', zIndex: 1050, minWidth: '300px' }}>
+                    {notification.message}
+                    <button 
+                        type="button" 
+                        className="btn-close" 
+                        onClick={() => setNotification(null)}
+                    ></button>
+                </div>
+            )}
+
             {/* Breadcrumb */}
             <nav aria-label="breadcrumb">
                 <ol className="breadcrumb">
@@ -238,46 +289,90 @@ const BookDetail = () => {
                         </div>
 
                         {/* Action Buttons */}
-                        {isLoggedIn && (
-                            <div className="mb-4">
-                                <button
-                                    onClick={handleWishlistToggle}
-                                    className={`btn me-2 ${book.is_in_wishlist ? 'btn-danger' : 'btn-outline-danger'}`}
-                                >
-                                    <i className={`${book.is_in_wishlist ? 'fas' : 'far'} fa-heart`}></i>
-                                    {book.is_in_wishlist ? ' В обраному' : ' Додати в обране'}
-                                </button>
-
-                                {!showRatingForm && !userRating && (
+                        <div className="mb-4">
+                            {/* Shopping Buttons - only if book is available and user is logged in */}
+                            {isLoggedIn && book.is_available && (
+                                <div className="d-grid gap-2 d-md-flex mb-3">
                                     <button
-                                        onClick={() => setShowRatingForm(true)}
-                                        className="btn btn-primary me-2"
+                                        onClick={addToCart}
+                                        className="btn btn-success btn-lg me-md-2"
                                     >
-                                        <i className="fas fa-star"></i> Залишити відгук
+                                        <i className="fas fa-cart-plus"></i> До кошика
                                     </button>
-                                )}
+                                    <button
+                                        onClick={buyNow}
+                                        className="btn btn-primary btn-lg"
+                                    >
+                                        <i className="fas fa-bolt"></i> Купити зараз
+                                    </button>
+                                </div>
+                            )}
 
-                                {userRating && (
-                                    <div className="d-inline">
-                                        <button
-                                            onClick={() => {
-                                                setNewRating({ score: userRating.score, review: userRating.review })
-                                                setShowRatingForm(true)
-                                            }}
-                                            className="btn btn-outline-primary me-2"
-                                        >
-                                            <i className="fas fa-edit"></i> Редагувати відгук
-                                        </button>
-                                        <button
-                                            onClick={handleDeleteRating}
-                                            className="btn btn-outline-danger"
-                                        >
-                                            <i className="fas fa-trash"></i> Видалити відгук
-                                        </button>
-                                    </div>
+                            {/* Availability status */}
+                            <div className="mb-3">
+                                {book.is_available ? (
+                                    <span className="badge bg-success fs-6">
+                                        <i className="fas fa-check"></i> В наявності
+                                    </span>
+                                ) : (
+                                    <span className="badge bg-danger fs-6">
+                                        <i className="fas fa-times"></i> Немає в наявності
+                                    </span>
                                 )}
                             </div>
-                        )}
+
+                            {/* Other action buttons */}
+                            {isLoggedIn && (
+                                <div className="d-flex flex-wrap gap-2">
+                                    <button
+                                        onClick={handleWishlistToggle}
+                                        className={`btn ${book.is_in_wishlist ? 'btn-danger' : 'btn-outline-danger'}`}
+                                    >
+                                        <i className={`${book.is_in_wishlist ? 'fas' : 'far'} fa-heart`}></i>
+                                        {book.is_in_wishlist ? ' В обраному' : ' Додати в обране'}
+                                    </button>
+
+                                    {!showRatingForm && !userRating && (
+                                        <button
+                                            onClick={() => setShowRatingForm(true)}
+                                            className="btn btn-outline-primary"
+                                        >
+                                            <i className="fas fa-star"></i> Залишити відгук
+                                        </button>
+                                    )}
+
+                                    {userRating && (
+                                        <>
+                                            <button
+                                                onClick={() => {
+                                                    setNewRating({ score: userRating.score, review: userRating.review })
+                                                    setShowRatingForm(true)
+                                                }}
+                                                className="btn btn-outline-primary"
+                                            >
+                                                <i className="fas fa-edit"></i> Редагувати відгук
+                                            </button>
+                                            <button
+                                                onClick={handleDeleteRating}
+                                                className="btn btn-outline-danger"
+                                            >
+                                                <i className="fas fa-trash"></i> Видалити відгук
+                                            </button>
+                                        </>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Login prompt for guests */}
+                            {!isLoggedIn && (
+                                <div className="alert alert-info">
+                                    <i className="fas fa-info-circle"></i> 
+                                    <Link to="/login" className="text-decoration-none ms-1">
+                                        Увійдіть в систему
+                                    </Link> для покупки та додавання в обране
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -296,7 +391,7 @@ const BookDetail = () => {
                 </div>
             </div>
 
-            {/* Rating Form - ONLY ONE FORM HERE */}
+            {/* Rating Form */}
             {isLoggedIn && showRatingForm && (
                 <div className="row mt-4">
                     <div className="col-12">
