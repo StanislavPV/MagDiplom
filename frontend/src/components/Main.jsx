@@ -8,11 +8,13 @@ const Main = () => {
   const [books, setBooks] = useState([])
   const [loading, setLoading] = useState(true)
   const [notification, setNotification] = useState(null)
+  const [genres, setGenres] = useState([])
   const location = useLocation()
   const navigate = useNavigate()
 
   useEffect(() => {
     fetchBooks()
+    fetchGenres()
   }, [location.search])
 
   // Auto-hide notification after 3 seconds
@@ -24,6 +26,15 @@ const Main = () => {
       return () => clearTimeout(timer)
     }
   }, [notification])
+
+  const fetchGenres = async () => {
+    try {
+      const response = await axiosInstance.get('/genres/')
+      setGenres(response.data)
+    } catch (error) {
+      console.error('Error fetching genres:', error)
+    }
+  }
 
   const fetchBooks = async () => {
     try {
@@ -60,14 +71,40 @@ const Main = () => {
         quantity: 1
       })
       
-      // Show success notification
       showNotification('✅ Книгу додано до кошика!', 'success')
-      
-      // Update cart count in header
       window.dispatchEvent(new CustomEvent('cartUpdated'))
     } catch (error) {
       console.error('Error adding to cart:', error)
       showNotification('❌ Помилка при додаванні до кошика', 'error')
+    }
+  }
+
+  const addToWishlist = async (bookId) => {
+    if (!isLoggedIn) {
+      showNotification('Увійдіть в систему, щоб додати до бажаного', 'warning')
+      setTimeout(() => navigate('/login'), 1500)
+      return
+    }
+
+    try {
+      const response = await axiosInstance.post('/wishlist/toggle/', { book_id: bookId })
+      
+      // Оновлюємо стан книги в списку
+      setBooks(prevBooks => 
+        prevBooks.map(book => 
+          book.id === bookId 
+            ? { ...book, is_in_wishlist: response.data.in_wishlist }
+            : book
+        )
+      )
+      
+      showNotification(
+        response.data.in_wishlist ? '❤️ Додано до бажаного' : '💔 Видалено з бажаного',
+        'success'
+      )
+    } catch (error) {
+      console.error('Error toggling wishlist:', error)
+      showNotification('❌ Помилка при додаванні до бажаного', 'error')
     }
   }
 
@@ -79,19 +116,13 @@ const Main = () => {
     }
 
     try {
-      // Спочатку додаємо книжку до кошика
       await axiosInstance.post('/cart/add/', {
         book: bookId,
         quantity: 1
       })
       
-      // Оновлюємо кошик в хедері
       window.dispatchEvent(new CustomEvent('cartUpdated'))
-      
-      // Показуємо повідомлення
       showNotification('✅ Книгу додано до кошика!', 'success')
-      
-      // Переходимо до оформлення замовлення (тепер з кошика)
       navigate('/checkout')
     } catch (error) {
       console.error('Error adding to cart before checkout:', error)
@@ -116,12 +147,38 @@ const Main = () => {
     return stars
   }
 
+  const getPageTitle = () => {
+    const searchParams = new URLSearchParams(location.search)
+    const searchTerm = searchParams.get('search')
+    const genreId = searchParams.get('genres')
+    
+    if (searchTerm && genreId) {
+      const genre = genres.find(g => g.id.toString() === genreId)
+      return `Результат пошуку "${searchTerm}" в категорії "${genre?.name || 'Невідома категорія'}"`
+    } else if (searchTerm) {
+      return `Результат пошуку "${searchTerm}"`
+    } else if (genreId) {
+      const genre = genres.find(g => g.id.toString() === genreId)
+      return `Книги категорії "${genre?.name || 'Невідома категорія'}"`
+    }
+    
+    return 'Наші книги'
+  }
+
+  const getBookCountText = (count) => {
+    if (count === 1) return '1 книга'
+    if (count >= 2 && count <= 4) return `${count} книги`
+    return `${count} книг`
+  }
+
   if (loading) {
     return (
-      <div className="container mt-5">
-        <div className="text-center">
-          <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Завантаження...</span>
+      <div className="page-content">
+        <div className="container mt-5">
+          <div className="text-center">
+            <div className="spinner-border text-primary" role="status">
+              <span className="visually-hidden">Завантаження...</span>
+            </div>
           </div>
         </div>
       </div>
@@ -129,122 +186,170 @@ const Main = () => {
   }
 
   return (
-    <div className='container mt-4'>
-      {/* Notification Toast */}
-      {notification && (
-        <div className={`alert alert-${notification.type === 'success' ? 'success' : notification.type === 'error' ? 'danger' : 'warning'} alert-dismissible fade show position-fixed`} 
-             style={{ top: '20px', right: '20px', zIndex: 1050, minWidth: '300px' }}>
-          {notification.message}
-          <button 
-            type="button" 
-            className="btn-close" 
-            onClick={() => setNotification(null)}
-          ></button>
-        </div>
-      )}
-
-      <div className="row">
-        <div className="col-12">
-          <h2 className="mb-4">📖 Наші книги ({books.length})</h2>
-        </div>
-        {books.length === 0 ? (
-          <div className="col-12 text-center">
-            <div className="alert alert-info">
-              <h4>😔 Книги не знайдено</h4>
-              <p>Спробуйте змінити параметри пошуку</p>
+    <div className="page-content">
+      <div className='main-container'>
+        <div className='container mt-4'>
+          {/* Notification Toast */}
+          {notification && (
+            <div className={`alert alert-${notification.type === 'success' ? 'success' : notification.type === 'error' ? 'danger' : 'warning'} alert-dismissible fade show position-fixed`} 
+                 style={{ top: '20px', right: '20px', zIndex: 1050, minWidth: '300px' }}>
+              {notification.message}
+              <button 
+                type="button" 
+                className="btn-close" 
+                onClick={() => setNotification(null)}
+              ></button>
             </div>
-          </div>
-        ) : (
-          books.map(book => (
-            <div key={book.id} className="col-lg-3 col-md-4 col-sm-6 mb-4">
-              <div className="card h-100 shadow-sm book-card">
-                <div className="card-img-wrapper">
-                  <Link to={`/books/${book.id}`}>
-                    {book.image ? (
-                      <img
-                        src={book.image}
-                        className="card-img-top book-cover"
-                        alt={book.title}
-                      />
-                    ) : (
-                      <div className="card-img-top book-cover-placeholder d-flex align-items-center justify-content-center">
-                        <i className="fas fa-book fa-3x text-muted"></i>
-                      </div>
-                    )}
-                  </Link>
-                  {!book.is_available && (
-                    <div className="position-absolute top-0 end-0 m-2">
-                      <span className="badge bg-danger">Немає в наявності</span>
-                    </div>
-                  )}
-                </div>
+          )}
 
-                <div className="card-body d-flex flex-column">
-                  <h6 className="card-title fw-bold text-truncate" title={book.title}>
-                    <Link to={`/books/${book.id}`} className="text-decoration-none">
-                      {book.title}
-                    </Link>
-                  </h6>
-
-                  <p className="card-text text-muted small mb-2">
-                    <i className="fas fa-user"></i> {book.author?.map(a => a.name).join(', ')}
-                  </p>
-
-                  <p className="card-text text-muted small mb-2">
-                    <i className="fas fa-calendar"></i> {book.year}
-                  </p>
-
-                  <div className="mb-2">
-                    {book.genres?.slice(0, 2).map(genre => (
-                      <span key={genre.id} className="badge bg-secondary me-1 small">
-                        {genre.name}
-                      </span>
-                    ))}
-                    {book.genres?.length > 2 && (
-                      <span className="text-muted small">+{book.genres.length - 2}</span>
-                    )}
-                  </div>
-
-                  <div className="mb-2">
-                    <div className="d-flex align-items-center">
-                      <div className="me-2">
-                        {renderStars(book.average_rating)}
-                      </div>
-                      <small className="text-muted">
-                        {book.average_rating ? `${book.average_rating} (${book.rating_count})` : 'Без рейтингу'}
-                      </small>
-                    </div>
-                  </div>
-
-                  <div className="mt-auto">
-                    {book.price && (
-                      <p className="card-text fw-bold text-success mb-3">
-                        <i className="fas fa-hryvnia-sign"></i> {book.price} грн
-                      </p>
-                    )}
-
-                    {isLoggedIn && book.is_available && (
-                      <div className="d-grid gap-2">
-                        <button
-                          onClick={() => addToCart(book.id)}
-                          className="btn btn-success btn-sm"
-                        >
-                          <i className="fas fa-cart-plus"></i> До кошика
-                        </button>
-                        <button
-                          onClick={() => buyNow(book.id)}
-                          className="btn btn-primary btn-sm"
-                        >
-                          <i className="fas fa-bolt"></i> Купити зараз
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
+          <div className="row">
+            <div className="col-12">
+              <div className="d-flex align-items-center justify-content-between mb-4">
+                <h2 className="fw-bold text-primary mb-0">
+                  <i className="fas fa-book-open me-2"></i>
+                  {getPageTitle()}
+                </h2>
+                <span className="badge bg-primary fs-6">{getBookCountText(books.length)}</span>
               </div>
             </div>
-          ))
-        )}
+            
+            {books.length === 0 ? (
+              <div className="col-12">
+                <div className="empty-state">
+                  <i className="fas fa-search fa-3x"></i>
+                  <h4>Книги не знайдено</h4>
+                  <p>Спробуйте змінити параметри пошуку або перегляньте всі книги</p>
+                  <Link to="/" className="btn btn-primary">
+                    <i className="fas fa-refresh me-2"></i>
+                    Скинути фільтри
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              books.map(book => (
+                <div key={book.id} className="col-xl-3 col-lg-4 col-md-6 col-sm-6 mb-4">
+                  <div className="card h-100 book-card">
+                    <div className="card-img-wrapper">
+                      <Link to={`/books/${book.id}`}>
+                        {book.image ? (
+                          <img
+                            src={book.image}
+                            className="book-cover"
+                            alt={book.title}
+                            onError={(e) => {
+                              e.target.style.display = 'none'
+                              e.target.nextElementSibling.style.display = 'flex'
+                            }}
+                          />
+                        ) : (
+                          <div className="book-cover-placeholder">
+                            <i className="fas fa-book fa-3x text-muted"></i>
+                          </div>
+                        )}
+                        {!book.image && (
+                          <div className="book-cover-placeholder" style={{ display: 'none' }}>
+                            <i className="fas fa-book fa-3x text-muted"></i>
+                          </div>
+                        )}
+                      </Link>
+                      {!book.is_available && (
+                        <div className="position-absolute top-0 end-0 m-2">
+                          <span className="badge bg-danger">Немає в наявності</span>
+                        </div>
+                      )}
+                      
+                      {/* Wishlist button */}
+                      {isLoggedIn && (
+                        <div className="position-absolute top-0 start-0 m-2">
+                          <button
+                            onClick={() => addToWishlist(book.id)}
+                            className={`btn btn-sm ${book.is_in_wishlist ? 'btn-danger' : 'btn-outline-light'} rounded-circle`}
+                            title={book.is_in_wishlist ? 'Видалити з бажаного' : 'Додати до бажаного'}
+                          >
+                            <i className={`${book.is_in_wishlist ? 'fas' : 'far'} fa-heart`}></i>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="card-body d-flex flex-column">
+                      <h6 className="card-title fw-bold text-truncate" title={book.title}>
+                        <Link to={`/books/${book.id}`} className="text-decoration-none text-dark">
+                          {book.title}
+                        </Link>
+                      </h6>
+
+                      <p className="card-text text-muted small mb-2">
+                        <i className="fas fa-user me-1"></i> 
+                        {book.author?.map(a => a.name).join(', ')}
+                      </p>
+
+                      <p className="card-text text-muted small mb-2">
+                        <i className="fas fa-calendar me-1"></i> 
+                        {book.year}
+                      </p>
+
+                      <div className="mb-2">
+                        {book.genres?.slice(0, 2).map(genre => (
+                          <span key={genre.id} className="badge bg-secondary me-1 small">
+                            {genre.name}
+                          </span>
+                        ))}
+                        {book.genres?.length > 2 && (
+                          <span className="text-muted small">+{book.genres.length - 2}</span>
+                        )}
+                      </div>
+
+                      <div className="mb-3">
+                        <div className="d-flex align-items-center">
+                          <div className="me-2">
+                            {renderStars(book.average_rating)}
+                          </div>
+                          <small className="text-muted">
+                            {book.average_rating ? `${book.average_rating} (${book.rating_count})` : 'Без рейтингу'}
+                          </small>
+                        </div>
+                      </div>
+
+                      <div className="mt-auto">
+                        {book.price && (
+                          <p className="card-text fw-bold text-success mb-3 fs-5">
+                            <i className="fas fa-hryvnia-sign"></i> {book.price} грн
+                          </p>
+                        )}
+
+                        {isLoggedIn && book.is_available && (
+                          <div className="btn-group-book">
+                            <button
+                              onClick={() => buyNow(book.id)}
+                              className="btn btn-primary btn-sm"
+                            >
+                              <i className="fas fa-bolt"></i> Купити зараз
+                            </button>
+                            <button
+                              onClick={() => addToCart(book.id)}
+                              className="btn btn-success btn-sm"
+                            >
+                              <i className="fas fa-cart-plus"></i> До кошика
+                            </button>
+                          </div>
+                        )}
+
+                        {!isLoggedIn && book.is_available && (
+                          <div className="d-grid">
+                            <Link to="/login" className="btn btn-outline-primary btn-sm">
+                              <i className="fas fa-sign-in-alt"></i> Увійти для покупки
+                            </Link>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
       </div>
     </div>
   )

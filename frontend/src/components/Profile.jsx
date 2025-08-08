@@ -116,7 +116,7 @@ const Profile = () => {
                                     <i className="fas fa-user-circle fa-3x text-primary"></i>
                                 </div>
                                 <div>
-                                    <h4 className="mb-1">{user?.name || 'Користувач'}</h4>
+                                    <h4 className="mb-1">{user?.name || 'Ваш профіль'}</h4>
                                     <p className="text-muted mb-0">{user?.email}</p>
                                 </div>
                             </div>

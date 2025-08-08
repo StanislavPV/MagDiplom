@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react'
+import React, { useState, useEffect, useContext, useRef } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { AuthContext } from '../AuthProvider'
 import axiosInstance from '../axiosInstance'
@@ -14,6 +14,7 @@ const BookDetail = () => {
     const [showRatingForm, setShowRatingForm] = useState(false)
     const [newRating, setNewRating] = useState({ score: 5, review: '' })
     const [notification, setNotification] = useState(null)
+    const ratingFormRef = useRef(null)
 
     useEffect(() => {
         fetchBookDetails()
@@ -32,6 +33,16 @@ const BookDetail = () => {
             return () => clearTimeout(timer)
         }
     }, [notification])
+
+    // Scroll to rating form when it's shown
+    useEffect(() => {
+        if (showRatingForm && ratingFormRef.current) {
+            ratingFormRef.current.scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'center'
+            })
+        }
+    }, [showRatingForm])
 
     const showNotification = (message, type = 'success') => {
         setNotification({ message, type })
@@ -95,19 +106,13 @@ const BookDetail = () => {
         }
 
         try {
-            // Спочатку додаємо книжку до кошика
             await axiosInstance.post('/cart/add/', {
                 book: parseInt(id),
                 quantity: 1
             })
             
-            // Оновлюємо кошик в хедері
             window.dispatchEvent(new CustomEvent('cartUpdated'))
-            
-            // Показуємо повідомлення
             showNotification('✅ Книгу додано до кошика!', 'success')
-            
-            // Переходимо до оформлення замовлення (тепер з кошика)
             navigate('/checkout')
         } catch (error) {
             console.error('Error adding to cart before checkout:', error)
@@ -120,7 +125,7 @@ const BookDetail = () => {
             const response = await axiosInstance.post('/wishlist/toggle/', { book_id: parseInt(id) })
             setBook(prev => ({ ...prev, is_in_wishlist: response.data.in_wishlist }))
             showNotification(
-                response.data.in_wishlist ? '❤️ Додано до обраного' : '💔 Видалено з обраного',
+                response.data.in_wishlist ? '❤️ Додано до бажаного' : '💔 Видалено з бажаного',
                 'success'
             )
         } catch (error) {
@@ -228,194 +233,226 @@ const BookDetail = () => {
             </nav>
 
             {/* Book Details */}
-            <div className="row">
-                <div className="col-md-4">
-                    <div className="book-detail-image">
-                        {book.image ? (
-                            <img src={book.image} className="img-fluid rounded shadow" alt={book.title} />
-                        ) : (
-                            <div className="bg-light rounded p-5 text-center">
-                                <i className="fas fa-book fa-5x text-muted"></i>
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                <div className="col-md-8">
-                    <div className="book-info">
-                        <h1 className="display-6 fw-bold mb-3">{book.title}</h1>
-
-                        <div className="mb-3">
-                            <h6 className="text-muted">Автор(и):</h6>
-                            <p className="fs-5">{book.author?.map(a => a.name).join(', ')}</p>
-                        </div>
-
-                        <div className="mb-3">
-                            <h6 className="text-muted">Жанри:</h6>
-                            <div>
-                                {book.genres?.map(genre => (
-                                    <span key={genre.id} className="badge bg-primary me-2 mb-1">
-                                        {genre.name}
-                                    </span>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div className="mb-3">
-                            <h6 className="text-muted">Рейтинг:</h6>
-                            <div className="d-flex align-items-center">
-                                {renderStars(book.average_rating || 0)}
-                                <span className="ms-2">
-                                    {book.average_rating ? `${book.average_rating}/5 (${book.rating_count} відгуків)` : 'Поки без рейтингу'}
-                                </span>
-                            </div>
-                        </div>
-
-                        {book.price && (
-                            <div className="mb-3">
-                                <h6 className="text-muted">Ціна:</h6>
-                                <p className="fs-4 text-success fw-bold">
-                                    <i className="fas fa-hryvnia-sign"></i> {book.price} грн
-                                </p>
-                            </div>
-                        )}
-
-                        <div className="mb-4">
-                            <div className="row">
-                                <div className="col-sm-6 mb-2">
-                                    <small className="text-muted">Рік видання:</small>
-                                    <p>{book.year}</p>
-                                </div>
-                                {book.language && (
-                                    <div className="col-sm-6 mb-2">
-                                        <small className="text-muted">Мова:</small>
-                                        <p>{book.language}</p>
-                                    </div>
-                                )}
-                                {book.page_count && (
-                                    <div className="col-sm-6 mb-2">
-                                        <small className="text-muted">Кількість сторінок:</small>
-                                        <p>{book.page_count}</p>
-                                    </div>
-                                )}
-                                {book.publisher && (
-                                    <div className="col-sm-6 mb-2">
-                                        <small className="text-muted">Видавництво:</small>
-                                        <p>{book.publisher}</p>
-                                    </div>
-                                )}
-                                {book.book_format && (
-                                    <div className="col-sm-6 mb-2">
-                                        <small className="text-muted">Формат:</small>
-                                        <p>{book.book_format}</p>
-                                    </div>
-                                )}
-                                {book.cover_type && (
-                                    <div className="col-sm-6 mb-2">
-                                        <small className="text-muted">Тип обкладинки:</small>
-                                        <p>{book.cover_type}</p>
-                                    </div>
-                                )}
-                                {book.original_name && (
-                                    <div className="col-sm-6 mb-2">
-                                        <small className="text-muted">Оригінальна назва:</small>
-                                        <p>{book.original_name}</p>
-                                    </div>
-                                )}
-                                {book.weight && (
-                                    <div className="col-sm-6 mb-2">
-                                        <small className="text-muted">Вага:</small>
-                                        <p>{book.weight} кг</p>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Action Buttons */}
-                        <div className="mb-4">
-                            {/* Shopping Buttons - only if book is available and user is logged in */}
-                            {isLoggedIn && book.is_available && (
-                                <div className="d-grid gap-2 d-md-flex mb-3">
-                                    <button
-                                        onClick={addToCart}
-                                        className="btn btn-success btn-lg me-md-2"
-                                    >
-                                        <i className="fas fa-cart-plus"></i> До кошика
-                                    </button>
-                                    <button
-                                        onClick={buyNow}
-                                        className="btn btn-primary btn-lg"
-                                    >
-                                        <i className="fas fa-bolt"></i> Купити зараз
-                                    </button>
+            <div className="book-detail-container">
+                <div className="row">
+                    <div className="col-lg-4 col-md-5">
+                        <div className="book-detail-image">
+                            {book.image ? (
+                                <img src={book.image} className="img-fluid rounded shadow" alt={book.title} />
+                            ) : (
+                                <div className="bg-light rounded p-5 text-center">
+                                    <i className="fas fa-book fa-5x text-muted"></i>
                                 </div>
                             )}
+                        </div>
+                    </div>
 
-                            {/* Availability status */}
-                            <div className="mb-3">
-                                {book.is_available ? (
-                                    <span className="badge bg-success fs-6">
-                                        <i className="fas fa-check"></i> В наявності
-                                    </span>
-                                ) : (
-                                    <span className="badge bg-danger fs-6">
-                                        <i className="fas fa-times"></i> Немає в наявності
-                                    </span>
-                                )}
+                    <div className="col-lg-8 col-md-7">
+                        <div className="row">
+                            {/* Left column - Book info */}
+                            <div className="col-lg-8">
+                                <div className="book-info">
+                                    <h1 className="display-6 fw-bold mb-3 text-primary">{book.title}</h1>
+
+                                    <div className="mb-3">
+                                        <h6 className="text-muted fw-semibold">Автор(и):</h6>
+                                        <p className="fs-5 text-dark">{book.author?.map(a => a.name).join(', ')}</p>
+                                    </div>
+
+                                    <div className="mb-3">
+                                        <h6 className="text-muted fw-semibold">Жанри:</h6>
+                                        <div>
+                                            {book.genres?.map(genre => (
+                                                <span key={genre.id} className="badge bg-primary me-2 mb-1">
+                                                    {genre.name}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="mb-3">
+                                        <h6 className="text-muted fw-semibold">Рейтинг:</h6>
+                                        <div className="d-flex align-items-center">
+                                            {renderStars(book.average_rating || 0)}
+                                            <span className="ms-2 fw-semibold">
+                                                {book.average_rating ? `${book.average_rating}/5 (${book.rating_count} відгуків)` : 'Поки без рейтингу'}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {book.price && (
+                                        <div className="mb-3">
+                                            <h6 className="text-muted fw-semibold">Ціна:</h6>
+                                            <p className="fs-3 text-success fw-bold mb-0">
+                                                <i className="fas fa-hryvnia-sign"></i> {book.price} грн
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
 
-                            {/* Other action buttons */}
-                            {isLoggedIn && (
-                                <div className="d-flex flex-wrap gap-2">
-                                    <button
-                                        onClick={handleWishlistToggle}
-                                        className={`btn ${book.is_in_wishlist ? 'btn-danger' : 'btn-outline-danger'}`}
-                                    >
-                                        <i className={`${book.is_in_wishlist ? 'fas' : 'far'} fa-heart`}></i>
-                                        {book.is_in_wishlist ? ' В обраному' : ' Додати в обране'}
-                                    </button>
+                            {/* Right column - Action buttons */}
+                            <div className="col-lg-4">
+                                <div className="book-actions-vertical">
+                                    {/* Availability status */}
+                                    <div className="mb-3">
+                                        {book.is_available ? (
+                                            <span className="badge bg-success fs-6 w-100 py-2">
+                                                <i className="fas fa-check"></i> В наявності
+                                            </span>
+                                        ) : (
+                                            <span className="badge bg-danger fs-6 w-100 py-2">
+                                                <i className="fas fa-times"></i> Немає в наявності
+                                            </span>
+                                        )}
+                                    </div>
 
-                                    {!showRatingForm && !userRating && (
-                                        <button
-                                            onClick={() => setShowRatingForm(true)}
-                                            className="btn btn-outline-primary"
-                                        >
-                                            <i className="fas fa-star"></i> Залишити відгук
-                                        </button>
-                                    )}
-
-                                    {userRating && (
+                                    {/* Action Buttons */}
+                                    {isLoggedIn && book.is_available && (
                                         <>
                                             <button
-                                                onClick={() => {
-                                                    setNewRating({ score: userRating.score, review: userRating.review })
-                                                    setShowRatingForm(true)
-                                                }}
-                                                className="btn btn-outline-primary"
+                                                onClick={buyNow}
+                                                className="btn btn-primary btn-lg w-100 mb-3"
                                             >
-                                                <i className="fas fa-edit"></i> Редагувати відгук
+                                                <i className="fas fa-bolt"></i> Купити зараз
                                             </button>
                                             <button
-                                                onClick={handleDeleteRating}
-                                                className="btn btn-outline-danger"
+                                                onClick={addToCart}
+                                                className="btn btn-success btn-lg w-100 mb-3"
                                             >
-                                                <i className="fas fa-trash"></i> Видалити відгук
+                                                <i className="fas fa-cart-plus"></i> До кошика
                                             </button>
                                         </>
                                     )}
-                                </div>
-                            )}
 
-                            {/* Login prompt for guests */}
-                            {!isLoggedIn && (
-                                <div className="alert alert-info">
-                                    <i className="fas fa-info-circle"></i> 
-                                    <Link to="/login" className="text-decoration-none ms-1">
-                                        Увійдіть в систему
-                                    </Link> для покупки та додавання в обране
+                                    {/* Secondary Actions */}
+                                    {isLoggedIn && (
+                                        <>
+                                            <button
+                                                onClick={handleWishlistToggle}
+                                                className={`btn ${book.is_in_wishlist ? 'btn-danger' : 'btn-outline-danger'} w-100 mb-3`}
+                                            >
+                                                <i className={`${book.is_in_wishlist ? 'fas' : 'far'} fa-heart`}></i>
+                                                {book.is_in_wishlist ? ' В бажаному' : ' До бажаного'}
+                                            </button>
+
+                                            {!showRatingForm && !userRating && (
+                                                <button
+                                                    onClick={() => setShowRatingForm(true)}
+                                                    className="btn btn-outline-primary w-100 mb-3"
+                                                >
+                                                    <i className="fas fa-star"></i> Залишити відгук
+                                                </button>
+                                            )}
+
+                                            {userRating && (
+                                                <div className="dropdown w-100 mb-3">
+                                                    <button
+                                                        className="btn btn-outline-primary dropdown-toggle w-100"
+                                                        type="button"
+                                                        data-bs-toggle="dropdown"
+                                                    >
+                                                        <i className="fas fa-edit"></i> Мій відгук
+                                                    </button>
+                                                    <ul className="dropdown-menu w-100">
+                                                        <li>
+                                                            <button
+                                                                className="dropdown-item"
+                                                                onClick={() => {
+                                                                    setNewRating({ score: userRating.score, review: userRating.review })
+                                                                    setShowRatingForm(true)
+                                                                }}
+                                                            >
+                                                                <i className="fas fa-edit me-2"></i>Редагувати
+                                                            </button>
+                                                        </li>
+                                                        <li>
+                                                            <button
+                                                                className="dropdown-item text-danger"
+                                                                onClick={handleDeleteRating}
+                                                            >
+                                                                <i className="fas fa-trash me-2"></i>Видалити
+                                                            </button>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            )}
+                                        </>
+                                    )}
+
+                                    {/* Login prompt for guests */}
+                                    {!isLoggedIn && (
+                                        <div className="alert alert-info">
+                                            <i className="fas fa-info-circle"></i> 
+                                            <Link to="/login" className="text-decoration-none ms-1">
+                                                Увійдіть в систему
+                                            </Link> для покупки та додавання в бажане
+                                        </div>
+                                    )}
                                 </div>
-                            )}
+                            </div>
                         </div>
+                    </div>
+                </div>
+
+                {/* Book Details Information */}
+                <div className="book-detail-info mt-4">
+                    <h5 className="mb-3 text-primary">
+                        <i className="fas fa-info-circle"></i> Детальна інформація
+                    </h5>
+                    <div className="row">
+                        <div className="col-md-6 col-lg-4 mb-2">
+                            <small className="text-muted">Рік видання:</small>
+                            <p className="fw-semibold">{book.year}</p>
+                        </div>
+                        {book.language && (
+                            <div className="col-md-6 col-lg-4 mb-2">
+                                <small className="text-muted">Мова:</small>
+                                <p className="fw-semibold">{book.language}</p>
+                            </div>
+                        )}
+                        {book.page_count && (
+                            <div className="col-md-6 col-lg-4 mb-2">
+                                <small className="text-muted">Кількість сторінок:</small>
+                                <p className="fw-semibold">{book.page_count}</p>
+                            </div>
+                        )}
+                        {book.publisher && (
+                            <div className="col-md-6 col-lg-4 mb-2">
+                                <small className="text-muted">Видавництво:</small>
+                                <p className="fw-semibold">{book.publisher}</p>
+                            </div>
+                        )}
+                        {book.book_format && (
+                            <div className="col-md-6 col-lg-4 mb-2">
+                                <small className="text-muted">Формат:</small>
+                                <p className="fw-semibold">{book.book_format}</p>
+                            </div>
+                        )}
+                        {book.cover_type && (
+                            <div className="col-md-6 col-lg-4 mb-2">
+                                <small className="text-muted">Тип обкладинки:</small>
+                                <p className="fw-semibold">{book.cover_type}</p>
+                            </div>
+                        )}
+                        {book.original_name && (
+                            <div className="col-md-6 col-lg-4 mb-2">
+                                <small className="text-muted">Оригінальна назва:</small>
+                                <p className="fw-semibold">{book.original_name}</p>
+                            </div>
+                        )}
+                        {book.weight && (
+                            <div className="col-md-6 col-lg-4 mb-2">
+                                <small className="text-muted">Вага:</small>
+                                <p className="fw-semibold">{book.weight} кг</p>
+                            </div>
+                        )}
+                        {book.isbn && (
+                            <div className="col-md-6 col-lg-4 mb-2">
+                                <small className="text-muted">ISBN:</small>
+                                <p className="fw-semibold">{book.isbn}</p>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -425,10 +462,10 @@ const BookDetail = () => {
                 <div className="col-12">
                     <div className="card">
                         <div className="card-header">
-                            <h5><i className="fas fa-info-circle"></i> Опис книги</h5>
+                            <h5><i className="fas fa-align-left"></i> Опис книги</h5>
                         </div>
                         <div className="card-body">
-                            <p className="card-text">{book.description}</p>
+                            <p className="card-text fs-6 lh-lg">{book.description}</p>
                         </div>
                     </div>
                 </div>
@@ -436,25 +473,28 @@ const BookDetail = () => {
 
             {/* Rating Form */}
             {isLoggedIn && showRatingForm && (
-                <div className="row mt-4">
+                <div className="row mt-4" ref={ratingFormRef}>
                     <div className="col-12">
                         <div className="card">
                             <div className="card-header">
-                                <h5>{userRating ? 'Редагувати відгук' : 'Залишити відгук'}</h5>
+                                <h5>
+                                    <i className="fas fa-star"></i>
+                                    {userRating ? ' Редагувати відгук' : ' Залишити відгук'}
+                                </h5>
                             </div>
                             <div className="card-body">
                                 <form onSubmit={handleRatingSubmit}>
                                     <div className="mb-3">
-                                        <label className="form-label">Оцінка:</label>
+                                        <label className="form-label fw-semibold">Оцінка:</label>
                                         <div className="rating-input">
                                             {renderStars(newRating.score, true, (score) =>
                                                 setNewRating(prev => ({ ...prev, score }))
                                             )}
-                                            <span className="ms-2">({newRating.score}/5)</span>
+                                            <span className="ms-2 fw-semibold">({newRating.score}/5)</span>
                                         </div>
                                     </div>
                                     <div className="mb-3">
-                                        <label className="form-label">Відгук (необов'язково):</label>
+                                        <label className="form-label fw-semibold">Відгук (необов'язково):</label>
                                         <textarea
                                             className="form-control"
                                             rows="4"
@@ -465,14 +505,15 @@ const BookDetail = () => {
                                     </div>
                                     <div>
                                         <button type="submit" className="btn btn-primary me-2">
-                                            {userRating ? 'Оновити відгук' : 'Залишити відгук'}
+                                            <i className="fas fa-save"></i>
+                                            {userRating ? ' Оновити відгук' : ' Залишити відгук'}
                                         </button>
                                         <button
                                             type="button"
                                             onClick={() => setShowRatingForm(false)}
                                             className="btn btn-secondary"
                                         >
-                                            Скасувати
+                                            <i className="fas fa-times"></i> Скасувати
                                         </button>
                                     </div>
                                 </form>
@@ -488,25 +529,21 @@ const BookDetail = () => {
                     <div className="card">
                         <div className="card-header d-flex justify-content-between align-items-center">
                             <h5><i className="fas fa-comments"></i> Відгуки ({ratings.length})</h5>
-                            {isLoggedIn && !userRating && !showRatingForm && (
-                                <button
-                                    onClick={() => setShowRatingForm(true)}
-                                    className="btn btn-success btn-sm"
-                                >
-                                    <i className="fas fa-star"></i> Залишити відгук
-                                </button>
-                            )}
                         </div>
                         <div className="card-body">
                             {ratings.length === 0 ? (
-                                <p className="text-muted text-center">Поки що немає відгуків. Будьте першим!</p>
+                                <div className="empty-state">
+                                    <i className="fas fa-comments fa-3x"></i>
+                                    <h4>Поки що немає відгуків</h4>
+                                    <p>Будьте першим, хто залишить відгук про цю книгу!</p>
+                                </div>
                             ) : (
                                 ratings.map(rating => (
                                     <div key={rating.id} className="border-bottom pb-3 mb-3">
                                         <div className="d-flex justify-content-between align-items-start">
                                             <div>
                                                 <div className="d-flex align-items-center mb-2">
-                                                    <strong className="me-2">{rating.user_name}</strong>
+                                                    <strong className="me-2 text-primary">{rating.user_name}</strong>
                                                     <div className="me-2">
                                                         {renderStars(rating.score)}
                                                     </div>
@@ -515,7 +552,7 @@ const BookDetail = () => {
                                                     </small>
                                                 </div>
                                                 {rating.review && (
-                                                    <p className="mb-0">{rating.review}</p>
+                                                    <p className="mb-0 text-dark">{rating.review}</p>
                                                 )}
                                             </div>
                                             {rating.is_own_rating && (

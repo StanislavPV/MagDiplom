@@ -14,6 +14,7 @@ import AuthProvider from './AuthProvider'
 import PrivateRoute from './PrivateRoute'
 import PublicRoute from './PublicRoute'
 import OrderDetail from './components/OrderDetail'
+import './assets/css/style.css'
 
 function App() {
   return (
@@ -21,17 +22,19 @@ function App() {
       <AuthProvider>
         <BrowserRouter>
           <Header />
-          <Routes>
-            <Route path='/' element={<Main />} />
-            <Route path='/books/:id' element={<BookDetail />} />
-            <Route path='/profile' element={<PrivateRoute><Profile /></PrivateRoute>} />
-            <Route path='/cart' element={<PrivateRoute><Cart /></PrivateRoute>} />
-            <Route path='/checkout' element={<PrivateRoute><Checkout /></PrivateRoute>} />
-            <Route path='/order-success' element={<PrivateRoute><OrderSuccess /></PrivateRoute>} />
-            <Route path='/register' element={<PublicRoute><Register /></PublicRoute>} />
-            <Route path='/login' element={<PublicRoute><Login /></PublicRoute>} />
-            <Route path='/orders/:id'  element={<PrivateRoute><OrderDetail /></PrivateRoute>} />
-          </Routes>
+          <div className="page-wrapper">
+            <Routes>
+              <Route path='/' element={<Main />} />
+              <Route path='/books/:id' element={<BookDetail />} />
+              <Route path='/profile' element={<PrivateRoute><Profile /></PrivateRoute>} />
+              <Route path='/cart' element={<PrivateRoute><Cart /></PrivateRoute>} />
+              <Route path='/checkout' element={<PrivateRoute><Checkout /></PrivateRoute>} />
+              <Route path='/order-success' element={<PrivateRoute><OrderSuccess /></PrivateRoute>} />
+              <Route path='/register' element={<PublicRoute><Register /></PublicRoute>} />
+              <Route path='/login' element={<PublicRoute><Login /></PublicRoute>} />
+              <Route path='/orders/:id'  element={<PrivateRoute><OrderDetail /></PrivateRoute>} />
+            </Routes>
+          </div>
           <Footer />
         </BrowserRouter>
       </AuthProvider>

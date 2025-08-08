@@ -7,7 +7,6 @@ import { AuthContext } from '../AuthProvider'
 import { useContext } from 'react'
 
 const Login = () => {
-
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -37,32 +36,69 @@ const Login = () => {
   };
 
   return (
-    <>
+    <div className='auth-page'>
       <div className='container'>
         <div className='row justify-content-center'>
-          <div className='col-md-6 bg-light p-5 rounded'>
-            <h3 className='text-center'>Логін</h3>
-            <form onSubmit={handleLogin}>
-              <div className='mb-3'>
-                <input type='email' className='form-control mb-3' placeholder='Електронна пошта' value={email} onChange={(e) => setEmail(e.target.value)} />
+          <div className='col-lg-5 col-md-7'>
+            <div className='auth-container'>
+              <div className='auth-form'>
+                <div className='text-center mb-4'>
+                  <h3 className='fw-bold text-primary'>📚 Вхід в систему</h3>
+                  <p className='text-muted'>Увійдіть до свого акаунту</p>
+                </div>
+                
+                <form onSubmit={handleLogin}>
+                  <div className='mb-3'>
+                    <label className='form-label fw-semibold'>Електронна пошта</label>
+                    <input 
+                      type='email' 
+                      className='form-control' 
+                      placeholder='example@email.com' 
+                      value={email} 
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                    />
+                  </div>
+                  
+                  <div className='mb-4'>
+                    <label className='form-label fw-semibold'>Пароль</label>
+                    <input 
+                      type='password' 
+                      className='form-control' 
+                      placeholder='Введіть пароль' 
+                      value={password} 
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                    />
+                  </div>
+                  
+                  {error && (
+                    <div className='alert alert-danger'>
+                      <i className='fas fa-exclamation-triangle me-2'></i>
+                      {error}
+                    </div>
+                  )}
+                  
+                  <div className='d-grid'>
+                    {loading ? (
+                      <button type='submit' className='btn btn-primary btn-lg' disabled>
+                        <FontAwesomeIcon icon={faSpinner} spin className='me-2' />
+                        Зачекайте...
+                      </button>
+                    ) : (
+                      <button type='submit' className='btn btn-primary btn-lg'>
+                        <i className='fas fa-sign-in-alt me-2'></i>
+                        Увійти
+                      </button>
+                    )}
+                  </div>
+                </form>
               </div>
-              <div className='mb-3'>
-                <input type='password' className='form-control mb-3' placeholder='Пароль' value={password} onChange={(e) => setPassword(e.target.value)} />
-              </div>
-              {error && <div className='text-danger'>{error}</div>}
-              {loading ? (
-                <button type='submit' className='btn btn-primary mt-3 w-100' disabled>
-                  <FontAwesomeIcon icon={faSpinner} spin /> Зачекайте...
-                </button>
-              ) : (
-                <button type='submit' className='btn btn-primary mt-3 w-100'>Залогінитись</button>
-              )}
-
-            </form>
+            </div>
           </div>
         </div>
       </div>
-    </>
+    </div>
   )
 }
 

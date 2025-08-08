@@ -144,9 +144,10 @@ const OrderDetail = () => {
                 </div>
             </div>
 
-            {/* Order Items */}
+            {/* Order Items and Summary Row */}
             <div className="row">
-                <div className="col-12">
+                {/* Order Items - Left side */}
+                <div className="col-lg-8">
                     <div className="card">
                         <div className="card-header">
                             <h5>
@@ -160,69 +161,67 @@ const OrderDetail = () => {
                                     <p>Немає товарів в цьому замовленні</p>
                                 </div>
                             ) : (
-                                <div className="row">
+                                <div className="order-items-list">
                                     {order.items.map(item => (
-                                        <div key={item.id} className="col-12 mb-3">
-                                            <div className="card border">
-                                                <div className="card-body">
-                                                    <div className="row align-items-center">
-                                                        <div className="col-md-2">
-                                                            <Link to={`/books/${item.book}`}>
-                                                                {item.book_data.image ? (
-                                                                    <img
-                                                                        src={item.book_data.image}
-                                                                        className="img-fluid rounded"
-                                                                        alt={item.book_data.title}
-                                                                        style={{ maxHeight: '120px' }}
-                                                                    />
-                                                                ) : (
-                                                                    <div className="bg-light rounded p-3 text-center">
-                                                                        <i className="fas fa-book fa-3x text-muted"></i>
-                                                                    </div>
-                                                                )}
-                                                            </Link>
-                                                        </div>
-                                                        <div className="col-md-6">
-                                                            <h6 className="fw-bold mb-2">
-                                                                <Link 
-                                                                    to={`/books/${item.book}`} 
-                                                                    className="text-decoration-none"
-                                                                >
-                                                                    {item.book_data.title}
-                                                                </Link>
-                                                            </h6>
-                                                            <p className="text-muted mb-1">
-                                                                <i className="fas fa-user"></i> {item.book_data.author?.map(a => a.name).join(', ')}
-                                                            </p>
-                                                            <p className="mb-0">
-                                                                <i className="fas fa-calendar"></i> {item.book_data.year}
-                                                            </p>
-                                                            {item.book_data.genres && (
-                                                                <div className="mt-2">
-                                                                    {item.book_data.genres.slice(0, 3).map(genre => (
-                                                                        <span key={genre.id} className="badge bg-secondary me-1 small">
-                                                                            {genre.name}
-                                                                        </span>
-                                                                    ))}
+                                        <div key={item.id} className="order-item-card mb-3">
+                                            <div className="card-body">
+                                                <div className="row align-items-center">
+                                                    <div className="col-md-3">
+                                                        <Link to={`/books/${item.book}`}>
+                                                            {item.book_data.image ? (
+                                                                <img
+                                                                    src={item.book_data.image}
+                                                                    className="img-fluid rounded"
+                                                                    alt={item.book_data.title}
+                                                                    style={{ maxHeight: '120px', width: '100%', objectFit: 'cover' }}
+                                                                />
+                                                            ) : (
+                                                                <div className="bg-light rounded p-3 text-center" style={{ height: '120px' }}>
+                                                                    <i className="fas fa-book fa-3x text-muted"></i>
                                                                 </div>
                                                             )}
-                                                        </div>
-                                                        <div className="col-md-2 text-center">
-                                                            <div className="fw-bold">Кількість</div>
-                                                            <div className="fs-4 text-primary">{item.quantity}</div>
-                                                        </div>
-                                                        <div className="col-md-2 text-end">
-                                                            <div className="mb-2">
-                                                                <small className="text-muted">Ціна за шт.:</small>
-                                                                <div className="text-success">
-                                                                    <i className="fas fa-hryvnia-sign"></i> {item.unit_price} грн
-                                                                </div>
+                                                        </Link>
+                                                    </div>
+                                                    <div className="col-md-5">
+                                                        <h6 className="fw-bold mb-2">
+                                                            <Link 
+                                                                to={`/books/${item.book}`} 
+                                                                className="text-decoration-none"
+                                                            >
+                                                                {item.book_data.title}
+                                                            </Link>
+                                                        </h6>
+                                                        <p className="text-muted mb-1">
+                                                            <i className="fas fa-user"></i> {item.book_data.author?.map(a => a.name).join(', ')}
+                                                        </p>
+                                                        <p className="mb-0">
+                                                            <i className="fas fa-calendar"></i> {item.book_data.year}
+                                                        </p>
+                                                        {item.book_data.genres && (
+                                                            <div className="mt-2">
+                                                                {item.book_data.genres.slice(0, 3).map(genre => (
+                                                                    <span key={genre.id} className="badge bg-secondary me-1 small">
+                                                                        {genre.name}
+                                                                    </span>
+                                                                ))}
                                                             </div>
-                                                            <div>
-                                                                <small className="text-muted">Загалом:</small>
-                                                                <div className="fs-5 fw-bold text-success">
-                                                                    <i className="fas fa-hryvnia-sign"></i> {item.total_price} грн
-                                                                </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="col-md-2 text-center">
+                                                        <div className="fw-bold">Кількість</div>
+                                                        <div className="fs-4 text-primary">{item.quantity}</div>
+                                                    </div>
+                                                    <div className="col-md-2 text-end">
+                                                        <div className="mb-2">
+                                                            <small className="text-muted">Ціна за шт.:</small>
+                                                            <div className="text-success">
+                                                                <i className="fas fa-hryvnia-sign"></i> {item.unit_price} грн
+                                                            </div>
+                                                        </div>
+                                                        <div>
+                                                            <small className="text-muted">Загалом:</small>
+                                                            <div className="fs-5 fw-bold text-success">
+                                                                <i className="fas fa-hryvnia-sign"></i> {item.total_price} грн
                                                             </div>
                                                         </div>
                                                     </div>
@@ -235,34 +234,79 @@ const OrderDetail = () => {
                         </div>
                     </div>
                 </div>
-            </div>
 
-            {/* Order Summary */}
-            <div className="row mt-4">
-                <div className="col-md-6 offset-md-6">
-                    <div className="card bg-light">
+                {/* Order Summary - Right side */}
+                <div className="col-lg-4">
+                    <div className="card order-summary-card">
+                        <div className="card-header">
+                            <h5 className="mb-0">
+                                <i className="fas fa-calculator"></i> Підсумок замовлення
+                            </h5>
+                        </div>
                         <div className="card-body">
-                            <h6 className="card-title">Підсумок замовлення</h6>
-                            <div className="d-flex justify-content-between mb-2">
-                                <span>Кількість товарів:</span>
-                                <span>{order.total_items}</span>
+                            <div className="d-flex justify-content-between mb-3">
+                                <span className="fs-6">Кількість товарів:</span>
+                                <span className="fw-bold fs-6">{order.total_items} шт.</span>
                             </div>
-                            <div className="d-flex justify-content-between mb-2">
-                                <span>Вартість товарів:</span>
-                                <span>
+                            <div className="d-flex justify-content-between mb-3">
+                                <span className="fs-6">Вартість товарів:</span>
+                                <span className="fs-6">
                                     <i className="fas fa-hryvnia-sign"></i> {order.total_amount} грн
                                 </span>
                             </div>
-                            <div className="d-flex justify-content-between mb-2">
-                                <span>Доставка:</span>
-                                <span className="text-success">Безкоштовно</span>
+                            <div className="d-flex justify-content-between mb-4">
+                                <span className="fs-6">Доставка:</span>
+                                <span className="text-success fs-6">Безкоштовно</span>
                             </div>
-                            <hr />
-                            <div className="d-flex justify-content-between">
-                                <span className="fw-bold fs-5">Загалом:</span>
-                                <span className="fw-bold fs-5 text-success">
+                            <hr className="my-3" />
+                            <div className="d-flex justify-content-between mb-4">
+                                <span className="fw-bold fs-4">Загалом:</span>
+                                <span className="fw-bold fs-4 text-success">
                                     <i className="fas fa-hryvnia-sign"></i> {order.total_amount} грн
                                 </span>
+                            </div>
+
+                            {/* Order Status */}
+                            <div className="order-status-section">
+                                <h6 className="fw-bold mb-3">
+                                    <i className="fas fa-info-circle"></i> Статус замовлення
+                                </h6>
+                                <div className="mb-3">
+                                    <span className={`badge ${order.is_completed ? 'bg-success' : 'bg-warning'} fs-6 w-100 py-2`}>
+                                        {order.is_completed ? '✅ Замовлення завершено' : '⏳ В обробці'}
+                                    </span>
+                                </div>
+                                <div className="small text-muted">
+                                    <div className="mb-2">
+                                        <strong>Створено:</strong><br />
+                                        {new Date(order.created_at).toLocaleString('uk-UA')}
+                                    </div>
+                                    {order.completed_at && (
+                                        <div>
+                                            <strong>Завершено:</strong><br />
+                                            {new Date(order.completed_at).toLocaleString('uk-UA')}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Payment Info */}
+                            <div className="payment-info-section mt-4">
+                                <h6 className="fw-bold mb-3">
+                                    <i className="fas fa-credit-card"></i> Інформація про оплату
+                                </h6>
+                                <div className="small">
+                                    <div className="mb-2">
+                                        <strong>Метод оплати:</strong><br />
+                                        {order.payment_method_display}
+                                    </div>
+                                    {order.card_details && (
+                                        <div>
+                                            <strong>Картка:</strong><br />
+                                            ****{order.card_details}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>

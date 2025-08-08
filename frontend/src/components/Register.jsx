@@ -50,46 +50,121 @@ const Register = () => {
     };
 
     return (
-        <>
+        <div className='auth-page'>
             <div className='container'>
                 <div className='row justify-content-center'>
-                    <div className='col-md-6 bg-light p-5 rounded'>
-                        <h3 className='text-center'>Створити акаунт</h3>
-                        <form onSubmit={handleRegistration}>
-                            <div className='mb-3'>
-                                <input type='text' className='form-control mb-3' placeholder='Ім’я' value={username} onChange={(e) => setUsername(e.target.value)} />
-                                <small>{errors.name && <div className='text-danger'>{errors.name}</div>}</small>
+                    <div className='col-lg-6 col-md-8'>
+                        <div className='auth-container'>
+                            <div className='auth-form'>
+                                <div className='text-center mb-4'>
+                                    <h3 className='fw-bold text-primary'>📚 Створити акаунт</h3>
+                                    <p className='text-muted'>Приєднуйтесь до нашої спільноти книголюбів</p>
+                                </div>
+                                
+                                <form onSubmit={handleRegistration}>
+                                    <div className='row'>
+                                        <div className='col-md-6 mb-3'>
+                                            <label className='form-label fw-semibold'>Ім'я</label>
+                                            <input 
+                                                type='text' 
+                                                className='form-control' 
+                                                placeholder="Ваше ім\'я" 
+                                                value={username} 
+                                                onChange={(e) => setUsername(e.target.value)}
+                                                required
+                                            />
+                                            {errors.name && <div className='text-danger small mt-1'>{errors.name}</div>}
+                                        </div>
+                                        
+                                        <div className='col-md-6 mb-3'>
+                                            <label className='form-label fw-semibold'>Електронна пошта</label>
+                                            <input 
+                                                type='email' 
+                                                className='form-control' 
+                                                placeholder='example@email.com' 
+                                                value={email} 
+                                                onChange={(e) => setEmail(e.target.value)}
+                                                required
+                                            />
+                                            {errors.email && <div className='text-danger small mt-1'>{errors.email}</div>}
+                                        </div>
+                                    </div>
+                                    
+                                    <div className='row'>
+                                        <div className='col-md-6 mb-3'>
+                                            <label className='form-label fw-semibold'>Пароль</label>
+                                            <input 
+                                                type='password' 
+                                                className='form-control' 
+                                                placeholder='Створіть пароль' 
+                                                value={password} 
+                                                onChange={(e) => setPassword(e.target.value)}
+                                                required
+                                            />
+                                            {errors.password && <div className='text-danger small mt-1'>{errors.password}</div>}
+                                        </div>
+                                        
+                                        <div className='col-md-6 mb-3'>
+                                            <label className='form-label fw-semibold'>Підтвердіть пароль</label>
+                                            <input 
+                                                type='password' 
+                                                className='form-control' 
+                                                placeholder='Повторіть пароль' 
+                                                value={passwordConfirm} 
+                                                onChange={(e) => setPasswordConfirm(e.target.value)}
+                                                required
+                                            />
+                                            {errors.password_confirm && <div className='text-danger small mt-1'>{errors.password_confirm}</div>}
+                                            {errors.non_field_errors && errors.non_field_errors.map((err, idx) => 
+                                                <div key={idx} className='text-danger small mt-1'>{err}</div>
+                                            )}
+                                        </div>
+                                    </div>
+                                    
+                                    <div className='mb-4'>
+                                        <label className='form-label fw-semibold'>Номер телефону</label>
+                                        <div className="input-group">
+                                            <span className="input-group-text">+380</span>
+                                            <input 
+                                                type="text" 
+                                                className="form-control" 
+                                                placeholder="501234567" 
+                                                value={phone} 
+                                                onChange={(e) => setPhone(e.target.value)}
+                                                maxLength="9"
+                                                required
+                                            />
+                                        </div>
+                                        {errors.phone_number && <div className='text-danger small mt-1'>{errors.phone_number}</div>}
+                                    </div>
+                                    
+                                    {success && (
+                                        <div className='alert alert-success'>
+                                            <i className='fas fa-check-circle me-2'></i>
+                                            Реєстрація успішна! Перенаправляємо...
+                                        </div>
+                                    )}
+                                    
+                                    <div className='d-grid'>
+                                        {loading ? (
+                                            <button type='submit' className='btn btn-primary btn-lg' disabled>
+                                                <FontAwesomeIcon icon={faSpinner} spin className='me-2' />
+                                                Створюємо акаунт...
+                                            </button>
+                                        ) : (
+                                            <button type='submit' className='btn btn-primary btn-lg'>
+                                                <i className='fas fa-user-plus me-2'></i>
+                                                Зареєструватися
+                                            </button>
+                                        )}
+                                    </div>
+                                </form>
                             </div>
-                            <div className='mb-3'>
-                                <input type='email' className='form-control mb-3' placeholder='Електронна пошта' value={email} onChange={(e) => setEmail(e.target.value)} />
-                                <small>{errors.email && <div className='text-danger'>{errors.email}</div>}</small>
-                            </div>
-                            <div className='mb-3'>
-                                <input type='password' className='form-control mb-3' placeholder='Пароль' value={password} onChange={(e) => setPassword(e.target.value)} />
-                                <small>{errors.password && <div className='text-danger'>{errors.password}</div>}</small>
-                            </div>
-                            <div className='mb-3'>
-                                <input type='password' className='form-control mb-3' placeholder='Підтвердіть пароль' value={passwordConfirm} onChange={(e) => setPasswordConfirm(e.target.value)} />
-                                <small>{errors.password_confirm && <div className='text-danger'>{errors.password_confirm}</div>} {errors.non_field_errors && errors.non_field_errors.map((err, idx) => <div key={idx} className='text-danger'>{err}</div>)}</small>
-                            </div>
-                            <div className="input-group mb-3">
-                                <span className="input-group-text">380</span>
-                                <input type="text" className="form-control" placeholder="Номер телефону" value={phone} onChange={(e) => setPhone(e.target.value)} />
-                                <small>{errors.phone_number && <div className='text-danger'>{errors.phone_number}</div>}</small>
-                            </div>
-                            {success && <div className='alert alert-success'>Реєстрація успішна!</div>}
-                            {loading ? (
-                                <button type='submit' className='btn btn-primary mt-3 w-100' disabled>
-                                    <FontAwesomeIcon icon={faSpinner} spin /> Зачекайте...
-                                </button>
-                            ) : (
-                                <button type='submit' className='btn btn-primary mt-3 w-100'>Зареєструватися</button>
-                            )}
-                        </form>
+                        </div>
                     </div>
                 </div>
             </div>
-        </>
+        </div>
     )
 }
 
