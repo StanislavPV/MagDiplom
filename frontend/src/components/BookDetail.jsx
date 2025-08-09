@@ -37,7 +37,7 @@ const BookDetail = () => {
     // Scroll to rating form when it's shown
     useEffect(() => {
         if (showRatingForm && ratingFormRef.current) {
-            ratingFormRef.current.scrollIntoView({ 
+            ratingFormRef.current.scrollIntoView({
                 behavior: 'smooth',
                 block: 'center'
             })
@@ -89,7 +89,7 @@ const BookDetail = () => {
                 book: parseInt(id),
                 quantity: 1
             })
-            
+
             showNotification('✅ Книгу додано до кошика!', 'success')
             window.dispatchEvent(new CustomEvent('cartUpdated'))
         } catch (error) {
@@ -110,7 +110,7 @@ const BookDetail = () => {
                 book: parseInt(id),
                 quantity: 1
             })
-            
+
             window.dispatchEvent(new CustomEvent('cartUpdated'))
             showNotification('✅ Книгу додано до кошика!', 'success')
             navigate('/checkout')
@@ -213,12 +213,12 @@ const BookDetail = () => {
         <div className="container mt-4">
             {/* Notification Toast */}
             {notification && (
-                <div className={`alert alert-${notification.type === 'success' ? 'success' : notification.type === 'error' ? 'danger' : 'warning'} alert-dismissible fade show position-fixed`} 
-                     style={{ top: '20px', right: '20px', zIndex: 1050, minWidth: '300px' }}>
+                <div className={`alert alert-${notification.type === 'success' ? 'success' : notification.type === 'error' ? 'danger' : 'warning'} alert-dismissible fade show position-fixed`}
+                    style={{ top: '20px', right: '20px', zIndex: 1050, minWidth: '300px' }}>
                     {notification.message}
-                    <button 
-                        type="button" 
-                        className="btn-close" 
+                    <button
+                        type="button"
+                        className="btn-close"
                         onClick={() => setNotification(null)}
                     ></button>
                 </div>
@@ -295,95 +295,47 @@ const BookDetail = () => {
                             <div className="col-lg-4">
                                 <div className="book-actions-vertical">
                                     {/* Availability status */}
-                                    <div className="mb-3">
+                                    <div className="book-availability">
                                         {book.is_available ? (
-                                            <span className="badge bg-success fs-6 w-100 py-2">
+                                            <div className="btn btn-success w-100 mb-3 availability-status">
                                                 <i className="fas fa-check"></i> В наявності
-                                            </span>
+                                            </div>
                                         ) : (
-                                            <span className="badge bg-danger fs-6 w-100 py-2">
+                                            <div className="btn btn-danger w-100 mb-3 availability-status">
                                                 <i className="fas fa-times"></i> Немає в наявності
-                                            </span>
+                                            </div>
                                         )}
                                     </div>
 
                                     {/* Action Buttons */}
                                     {isLoggedIn && book.is_available && (
-                                        <>
+                                        <div className="book-action-buttons">
                                             <button
                                                 onClick={buyNow}
-                                                className="btn btn-primary btn-lg w-100 mb-3"
+                                                className="btn btn-soft-primary"
                                             >
-                                                <i className="fas fa-bolt"></i> Купити зараз
+                                                <i className="fas fa-shopping-bag"></i> Купити зараз
                                             </button>
                                             <button
                                                 onClick={addToCart}
-                                                className="btn btn-success btn-lg w-100 mb-3"
+                                                className="btn btn-soft-success"
                                             >
-                                                <i className="fas fa-cart-plus"></i> До кошика
+                                                <i className="fas fa-shopping-cart"></i> Додати до кошика
                                             </button>
-                                        </>
-                                    )}
-
-                                    {/* Secondary Actions */}
-                                    {isLoggedIn && (
-                                        <>
                                             <button
                                                 onClick={handleWishlistToggle}
-                                                className={`btn ${book.is_in_wishlist ? 'btn-danger' : 'btn-outline-danger'} w-100 mb-3`}
+                                                className={`btn ${book.is_in_wishlist ? 'btn-soft-danger' : 'btn-outline-danger'}`}
                                             >
                                                 <i className={`${book.is_in_wishlist ? 'fas' : 'far'} fa-heart`}></i>
                                                 {book.is_in_wishlist ? ' В бажаному' : ' До бажаного'}
                                             </button>
-
-                                            {!showRatingForm && !userRating && (
-                                                <button
-                                                    onClick={() => setShowRatingForm(true)}
-                                                    className="btn btn-outline-primary w-100 mb-3"
-                                                >
-                                                    <i className="fas fa-star"></i> Залишити відгук
-                                                </button>
-                                            )}
-
-                                            {userRating && (
-                                                <div className="dropdown w-100 mb-3">
-                                                    <button
-                                                        className="btn btn-outline-primary dropdown-toggle w-100"
-                                                        type="button"
-                                                        data-bs-toggle="dropdown"
-                                                    >
-                                                        <i className="fas fa-edit"></i> Мій відгук
-                                                    </button>
-                                                    <ul className="dropdown-menu w-100">
-                                                        <li>
-                                                            <button
-                                                                className="dropdown-item"
-                                                                onClick={() => {
-                                                                    setNewRating({ score: userRating.score, review: userRating.review })
-                                                                    setShowRatingForm(true)
-                                                                }}
-                                                            >
-                                                                <i className="fas fa-edit me-2"></i>Редагувати
-                                                            </button>
-                                                        </li>
-                                                        <li>
-                                                            <button
-                                                                className="dropdown-item text-danger"
-                                                                onClick={handleDeleteRating}
-                                                            >
-                                                                <i className="fas fa-trash me-2"></i>Видалити
-                                                            </button>
-                                                        </li>
-                                                    </ul>
-                                                </div>
-                                            )}
-                                        </>
+                                        </div>
                                     )}
 
                                     {/* Login prompt for guests */}
                                     {!isLoggedIn && (
                                         <div className="alert alert-info">
-                                            <i className="fas fa-info-circle"></i> 
+                                            <i className="fas fa-info-circle"></i>
                                             <Link to="/login" className="text-decoration-none ms-1">
                                                 Увійдіть в систему
                                             </Link> для покупки та додавання в бажане
@@ -504,7 +456,7 @@ const BookDetail = () => {
                                         ></textarea>
                                     </div>
                                     <div>
-                                        <button type="submit" className="btn btn-primary me-2">
+                                        <button type="submit" className="btn btn-soft-primary me-2">
                                             <i className="fas fa-save"></i>
                                             {userRating ? ' Оновити відгук' : ' Залишити відгук'}
                                         </button>
@@ -528,7 +480,54 @@ const BookDetail = () => {
                 <div className="col-12">
                     <div className="card">
                         <div className="card-header d-flex justify-content-between align-items-center">
-                            <h5><i className="fas fa-comments"></i> Відгуки ({ratings.length})</h5>
+                            <h5 className="mb-0"><i className="fas fa-comments"></i> Відгуки ({ratings.length})</h5>
+
+                            {/* Rating actions moved here */}
+                            {isLoggedIn && (
+                                <div className="rating-actions">
+                                    {!showRatingForm && !userRating && (
+                                        <button
+                                            onClick={() => setShowRatingForm(true)}
+                                            className="btn btn-soft-primary btn-sm"
+                                        >
+                                            <i className="fas fa-star"></i> Залишити відгук
+                                        </button>
+                                    )}
+
+                                    {userRating && (
+                                        <div className="dropdown">
+                                            <button
+                                                className="btn btn-soft-primary btn-sm dropdown-toggle"
+                                                type="button"
+                                                data-bs-toggle="dropdown"
+                                            >
+                                                <i className="fas fa-edit"></i> Мій відгук
+                                            </button>
+                                            <ul className="dropdown-menu">
+                                                <li>
+                                                    <button
+                                                        className="dropdown-item"
+                                                        onClick={() => {
+                                                            setNewRating({ score: userRating.score, review: userRating.review })
+                                                            setShowRatingForm(true)
+                                                        }}
+                                                    >
+                                                        <i className="fas fa-edit me-2"></i>Редагувати
+                                                    </button>
+                                                </li>
+                                                <li>
+                                                    <button
+                                                        className="dropdown-item text-danger"
+                                                        onClick={handleDeleteRating}
+                                                    >
+                                                        <i className="fas fa-trash me-2"></i>Видалити
+                                                    </button>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
                         <div className="card-body">
                             {ratings.length === 0 ? (

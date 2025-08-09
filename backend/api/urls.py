@@ -16,6 +16,7 @@ urlpatterns = [
     # Books
     path('books/', BookViews.BookListView.as_view(), name='book-list'),
     path('books/<int:pk>/', BookViews.BookDetailView.as_view(), name='book-detail'),
+    path('books/popular/', BookViews.popular_books, name='popular-books'),
     
     # Genres and Authors
     path('genres/', BookViews.GenreListView.as_view(), name='genres'),
@@ -42,7 +43,7 @@ urlpatterns = [
     path('cart/clear/', CartViews.clear_cart, name='clear-cart'),
     path('cart/summary/', CartViews.cart_summary, name='cart-summary'),
     
-    # Orders - FIXED URLs
+    # Orders
     path('orders/', OrderViews.UserOrdersView.as_view(), name='user-orders'),
     path('orders/<int:pk>/', OrderViews.OrderDetailView.as_view(), name='order-detail'),
     path('orders/create/', OrderViews.create_order, name='create-order'),

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { AuthContext } from '../AuthProvider'
 import axiosInstance from '../axiosInstance'
+import PopularBooksCarousel from './PopularBooksCarousel'
 
 const Main = () => {
   const { isLoggedIn } = useContext(AuthContext)
@@ -9,12 +10,21 @@ const Main = () => {
   const [loading, setLoading] = useState(true)
   const [notification, setNotification] = useState(null)
   const [genres, setGenres] = useState([])
+  const [authors, setAuthors] = useState([])
+  const [pagination, setPagination] = useState({
+    count: 0,
+    next: null,
+    previous: null,
+    current_page: 1,
+    total_pages: 1
+  })
   const location = useLocation()
   const navigate = useNavigate()
 
   useEffect(() => {
     fetchBooks()
     fetchGenres()
+    fetchAuthors()
   }, [location.search])
 
   // Auto-hide notification after 3 seconds
@@ -36,17 +46,37 @@ const Main = () => {
     }
   }
 
+  const fetchAuthors = async () => {
+    try {
+      const response = await axiosInstance.get('/authors/')
+      setAuthors(response.data)
+    } catch (error) {
+      console.error('Error fetching authors:', error)
+    }
+  }
+
   const fetchBooks = async () => {
     try {
       const searchParams = new URLSearchParams(location.search)
       let url = '/books/?ordering=-year'
-      
+
       if (searchParams.toString()) {
         url += `&${searchParams.toString()}`
       }
 
       const response = await axiosInstance.get(url)
       setBooks(response.data.results || response.data)
+
+      // Handle pagination
+      if (response.data.count !== undefined) {
+        setPagination({
+          count: response.data.count,
+          next: response.data.next,
+          previous: response.data.previous,
+          current_page: searchParams.get('page') ? parseInt(searchParams.get('page')) : 1,
+          total_pages: Math.ceil(response.data.count / 8)
+        })
+      }
     } catch (error) {
       console.error('Error fetching books:', error)
     } finally {
@@ -70,7 +100,7 @@ const Main = () => {
         book: bookId,
         quantity: 1
       })
-      
+
       showNotification('✅ Книгу додано до кошика!', 'success')
       window.dispatchEvent(new CustomEvent('cartUpdated'))
     } catch (error) {
@@ -88,16 +118,16 @@ const Main = () => {
 
     try {
       const response = await axiosInstance.post('/wishlist/toggle/', { book_id: bookId })
-      
+
       // Оновлюємо стан книги в списку
-      setBooks(prevBooks => 
-        prevBooks.map(book => 
-          book.id === bookId 
+      setBooks(prevBooks =>
+        prevBooks.map(book =>
+          book.id === bookId
             ? { ...book, is_in_wishlist: response.data.in_wishlist }
             : book
         )
       )
-      
+
       showNotification(
         response.data.in_wishlist ? '❤️ Додано до бажаного' : '💔 Видалено з бажаного',
         'success'
@@ -120,7 +150,7 @@ const Main = () => {
         book: bookId,
         quantity: 1
       })
-      
+
       window.dispatchEvent(new CustomEvent('cartUpdated'))
       showNotification('✅ Книгу додано до кошика!', 'success')
       navigate('/checkout')
@@ -128,6 +158,23 @@ const Main = () => {
       console.error('Error adding to cart before checkout:', error)
       showNotification('❌ Помилка при додаванні до кошика', 'error')
     }
+  }
+
+  const handleAuthorClick = (authorId) => {
+    const searchParams = new URLSearchParams(location.search)
+    searchParams.set('author', authorId)
+    searchParams.delete('page') // Reset to first page
+    navigate(`/?${searchParams.toString()}`)
+  }
+
+  const handlePageChange = (page) => {
+    const searchParams = new URLSearchParams(location.search)
+    if (page > 1) {
+      searchParams.set('page', page)
+    } else {
+      searchParams.delete('page')
+    }
+    navigate(`/?${searchParams.toString()}`)
   }
 
   const renderStars = (rating) => {
@@ -151,24 +198,83 @@ const Main = () => {
     const searchParams = new URLSearchParams(location.search)
     const searchTerm = searchParams.get('search')
     const genreId = searchParams.get('genres')
-    
+    const authorId = searchParams.get('author')
+
     if (searchTerm && genreId) {
       const genre = genres.find(g => g.id.toString() === genreId)
       return `Результат пошуку "${searchTerm}" в категорії "${genre?.name || 'Невідома категорія'}"`
+    } else if (searchTerm && authorId) {
+      const author = authors.find(a => a.id.toString() === authorId)
+      return `Результат пошуку "${searchTerm}" автора "${author?.name || 'Невідомий автор'}"`
     } else if (searchTerm) {
       return `Результат пошуку "${searchTerm}"`
     } else if (genreId) {
       const genre = genres.find(g => g.id.toString() === genreId)
       return `Книги категорії "${genre?.name || 'Невідома категорія'}"`
+    } else if (authorId) {
+      const author = authors.find(a => a.id.toString() === authorId)
+      return `Книги автора "${author?.name || 'Невідомий автор'}"`
     }
-    
+
     return 'Наші книги'
   }
 
-  const getBookCountText = (count) => {
-    if (count === 1) return '1 книга'
-    if (count >= 2 && count <= 4) return `${count} книги`
-    return `${count} книг`
+  const renderPagination = () => {
+    if (pagination.total_pages <= 1) return null
+
+    const pages = []
+    const currentPage = pagination.current_page
+    const totalPages = pagination.total_pages
+
+    // Previous button
+    if (currentPage > 1) {
+      pages.push(
+        <li key="prev" className="page-item">
+          <button
+            className="page-link"
+            onClick={() => handlePageChange(currentPage - 1)}
+          >
+            Попередня
+          </button>
+        </li>
+      )
+    }
+
+    // Page numbers
+    for (let i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++) {
+      pages.push(
+        <li key={i} className={`page-item ${i === currentPage ? 'active' : ''}`}>
+          <button
+            className="page-link"
+            onClick={() => handlePageChange(i)}
+          >
+            {i}
+          </button>
+        </li>
+      )
+    }
+
+    // Next button
+    if (currentPage < totalPages) {
+      pages.push(
+        <li key="next" className="page-item">
+          <button
+            className="page-link"
+            onClick={() => handlePageChange(currentPage + 1)}
+          >
+            Наступна
+          </button>
+        </li>
+      )
+    }
+
+    return (
+      <nav className="mt-4">
+        <ul className="pagination justify-content-center">
+          {pages}
+        </ul>
+      </nav>
+    )
   }
 
   if (loading) {
@@ -191,16 +297,19 @@ const Main = () => {
         <div className='container mt-4'>
           {/* Notification Toast */}
           {notification && (
-            <div className={`alert alert-${notification.type === 'success' ? 'success' : notification.type === 'error' ? 'danger' : 'warning'} alert-dismissible fade show position-fixed`} 
-                 style={{ top: '20px', right: '20px', zIndex: 1050, minWidth: '300px' }}>
+            <div className={`alert alert-${notification.type === 'success' ? 'success' : notification.type === 'error' ? 'danger' : 'warning'} alert-dismissible fade show position-fixed`}
+              style={{ top: '20px', right: '20px', zIndex: 1050, minWidth: '300px' }}>
               {notification.message}
-              <button 
-                type="button" 
-                className="btn-close" 
+              <button
+                type="button"
+                className="btn-close"
                 onClick={() => setNotification(null)}
               ></button>
             </div>
           )}
+
+          {/* Popular Books Carousel - показувати тільки на головній сторінці */}
+          {!location.search && <PopularBooksCarousel />}
 
           <div className="row">
             <div className="col-12">
@@ -209,10 +318,12 @@ const Main = () => {
                   <i className="fas fa-book-open me-2"></i>
                   {getPageTitle()}
                 </h2>
-                <span className="badge bg-primary fs-6">{getBookCountText(books.length)}</span>
+                <span className="badge bg-primary fs-6">
+                  Кількість: {pagination.count || books.length}
+                </span>
               </div>
             </div>
-            
+
             {books.length === 0 ? (
               <div className="col-12">
                 <div className="empty-state">
@@ -226,127 +337,144 @@ const Main = () => {
                 </div>
               </div>
             ) : (
-              books.map(book => (
-                <div key={book.id} className="col-xl-3 col-lg-4 col-md-6 col-sm-6 mb-4">
-                  <div className="card h-100 book-card">
-                    <div className="card-img-wrapper">
-                      <Link to={`/books/${book.id}`}>
-                        {book.image ? (
-                          <img
-                            src={book.image}
-                            className="book-cover"
-                            alt={book.title}
-                            onError={(e) => {
-                              e.target.style.display = 'none'
-                              e.target.nextElementSibling.style.display = 'flex'
-                            }}
-                          />
-                        ) : (
-                          <div className="book-cover-placeholder">
-                            <i className="fas fa-book fa-3x text-muted"></i>
-                          </div>
-                        )}
-                        {!book.image && (
-                          <div className="book-cover-placeholder" style={{ display: 'none' }}>
-                            <i className="fas fa-book fa-3x text-muted"></i>
-                          </div>
-                        )}
-                      </Link>
-                      {!book.is_available && (
-                        <div className="position-absolute top-0 end-0 m-2">
-                          <span className="badge bg-danger">Немає в наявності</span>
+              <>
+                <div className="row">
+                  {books.map(book => (
+                    <div key={book.id} className="col-xl-3 col-lg-4 col-md-6 col-sm-6 mb-4">
+                      <div className="card h-100 book-card">
+                        <div className="card-img-wrapper">
+                          <Link to={`/books/${book.id}`}>
+                            {book.image ? (
+                              <img
+                                src={book.image}
+                                className="book-cover"
+                                alt={book.title}
+                                onError={(e) => {
+                                  e.target.style.display = 'none'
+                                  e.target.nextElementSibling.style.display = 'flex'
+                                }}
+                              />
+                            ) : (
+                              <div className="book-cover-placeholder">
+                                <i className="fas fa-book fa-3x text-muted"></i>
+                              </div>
+                            )}
+                            {!book.image && (
+                              <div className="book-cover-placeholder" style={{ display: 'none' }}>
+                                <i className="fas fa-book fa-3x text-muted"></i>
+                              </div>
+                            )}
+                          </Link>
+                          {!book.is_available && (
+                            <div className="position-absolute top-0 end-0 m-2">
+                              <span className="badge bg-danger">Немає в наявності</span>
+                            </div>
+                          )}
+
+                          {/* Wishlist button */}
+                          {isLoggedIn && (
+                            <div className="position-absolute top-0 start-0 m-2">
+                              <button
+                                onClick={() => addToWishlist(book.id)}
+                                className={`btn btn-sm ${book.is_in_wishlist ? 'btn-danger' : 'btn-outline-light'} rounded-circle`}
+                                title={book.is_in_wishlist ? 'Видалити з бажаного' : 'Додати до бажаного'}
+                              >
+                                <i className={`${book.is_in_wishlist ? 'fas' : 'far'} fa-heart`}></i>
+                              </button>
+                            </div>
+                          )}
                         </div>
-                      )}
-                      
-                      {/* Wishlist button */}
-                      {isLoggedIn && (
-                        <div className="position-absolute top-0 start-0 m-2">
-                          <button
-                            onClick={() => addToWishlist(book.id)}
-                            className={`btn btn-sm ${book.is_in_wishlist ? 'btn-danger' : 'btn-outline-light'} rounded-circle`}
-                            title={book.is_in_wishlist ? 'Видалити з бажаного' : 'Додати до бажаного'}
-                          >
-                            <i className={`${book.is_in_wishlist ? 'fas' : 'far'} fa-heart`}></i>
-                          </button>
-                        </div>
-                      )}
-                    </div>
 
-                    <div className="card-body d-flex flex-column">
-                      <h6 className="card-title fw-bold text-truncate" title={book.title}>
-                        <Link to={`/books/${book.id}`} className="text-decoration-none text-dark">
-                          {book.title}
-                        </Link>
-                      </h6>
-
-                      <p className="card-text text-muted small mb-2">
-                        <i className="fas fa-user me-1"></i> 
-                        {book.author?.map(a => a.name).join(', ')}
-                      </p>
-
-                      <p className="card-text text-muted small mb-2">
-                        <i className="fas fa-calendar me-1"></i> 
-                        {book.year}
-                      </p>
-
-                      <div className="mb-2">
-                        {book.genres?.slice(0, 2).map(genre => (
-                          <span key={genre.id} className="badge bg-secondary me-1 small">
-                            {genre.name}
-                          </span>
-                        ))}
-                        {book.genres?.length > 2 && (
-                          <span className="text-muted small">+{book.genres.length - 2}</span>
-                        )}
-                      </div>
-
-                      <div className="mb-3">
-                        <div className="d-flex align-items-center">
-                          <div className="me-2">
-                            {renderStars(book.average_rating)}
-                          </div>
-                          <small className="text-muted">
-                            {book.average_rating ? `${book.average_rating} (${book.rating_count})` : 'Без рейтингу'}
-                          </small>
-                        </div>
-                      </div>
-
-                      <div className="mt-auto">
-                        {book.price && (
-                          <p className="card-text fw-bold text-success mb-3 fs-5">
-                            <i className="fas fa-hryvnia-sign"></i> {book.price} грн
-                          </p>
-                        )}
-
-                        {isLoggedIn && book.is_available && (
-                          <div className="btn-group-book">
-                            <button
-                              onClick={() => buyNow(book.id)}
-                              className="btn btn-primary btn-sm"
-                            >
-                              <i className="fas fa-bolt"></i> Купити зараз
-                            </button>
-                            <button
-                              onClick={() => addToCart(book.id)}
-                              className="btn btn-success btn-sm"
-                            >
-                              <i className="fas fa-cart-plus"></i> До кошика
-                            </button>
-                          </div>
-                        )}
-
-                        {!isLoggedIn && book.is_available && (
-                          <div className="d-grid">
-                            <Link to="/login" className="btn btn-outline-primary btn-sm">
-                              <i className="fas fa-sign-in-alt"></i> Увійти для покупки
+                        <div className="card-body d-flex flex-column">
+                          <h6 className="card-title fw-bold text-truncate" title={book.title}>
+                            <Link to={`/books/${book.id}`} className="text-decoration-none text-dark">
+                              {book.title}
                             </Link>
+                          </h6>
+
+                          <p className="card-text text-muted small mb-2">
+                            <i className="fas fa-user me-1"></i>
+                            {book.author?.map((a, index) => (
+                              <span key={a.id}>
+                                <button
+                                  className="author-link"
+                                  onClick={() => handleAuthorClick(a.id)}
+                                >
+                                  {a.name}
+                                </button>
+                                {index < book.author.length - 1 && ', '}
+                              </span>
+                            ))}
+                          </p>
+
+                          <p className="card-text text-muted small mb-2">
+                            <i className="fas fa-calendar me-1"></i>
+                            {book.year}
+                          </p>
+
+                          <div className="mb-2">
+                            {book.genres?.slice(0, 2).map(genre => (
+                              <span key={genre.id} className="badge bg-secondary me-1 small">
+                                {genre.name}
+                              </span>
+                            ))}
+                            {book.genres?.length > 2 && (
+                              <span className="text-muted small">+{book.genres.length - 2}</span>
+                            )}
                           </div>
-                        )}
+
+                          <div className="mb-3">
+                            <div className="d-flex align-items-center">
+                              <div className="me-2">
+                                {renderStars(book.average_rating)}
+                              </div>
+                              <small className="text-muted">
+                                {book.average_rating ? `${book.average_rating} (${book.rating_count})` : 'Без рейтингу'}
+                              </small>
+                            </div>
+                          </div>
+
+                          <div className="mt-auto">
+                            {book.price && (
+                              <p className="card-text fw-bold text-success mb-3 fs-5">
+                                <i className="fas fa-hryvnia-sign"></i> {book.price} грн
+                              </p>
+                            )}
+
+                            {isLoggedIn && book.is_available && (
+                              <div className="btn-group-book">
+                                <button
+                                  onClick={() => buyNow(book.id)}
+                                  className="btn btn-soft-primary btn-sm"
+                                >
+                                  <i className="fas fa-shopping-bag"></i> Купити
+                                </button>
+                                <button
+                                  onClick={() => addToCart(book.id)}
+                                  className="btn btn-soft-success btn-sm"
+                                >
+                                  До <i className="fas fa-shopping-cart"></i>
+                                </button>
+                              </div>
+                            )}
+
+                            {!isLoggedIn && book.is_available && (
+                              <div className="d-grid">
+                                <Link to="/login" className="btn btn-outline-primary btn-sm">
+                                  <i className="fas fa-sign-in-alt"></i> Увійти для покупки
+                                </Link>
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  ))}
                 </div>
-              ))
+
+                {/* Pagination */}
+                {renderPagination()}
+              </>
             )}
           </div>
         </div>

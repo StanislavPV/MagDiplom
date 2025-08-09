@@ -46,20 +46,40 @@ const Cart = () => {
   }
 
   const updateQuantity = async (itemId, newQuantity) => {
-    if (newQuantity < 1) return
+  if (newQuantity < 1) return
 
-    try {
-      await axiosInstance.put(`/cart/items/${itemId}/`, {
-        quantity: newQuantity
-      })
-      fetchCart() // This will now trigger header update
-      showNotification('✅ Кількість оновлено', 'success')
-    } catch (error) {
-      console.error('Error updating quantity:', error)
-      showNotification('❌ Помилка при оновленні кількості', 'error')
-    }
+  try {
+    // Зберігаємо поточний порядок елементів
+    const currentOrder = cart.items.map(item => item.id)
+    
+    await axiosInstance.put(`/cart/items/${itemId}/`, {
+      quantity: newQuantity
+    })
+    
+    // Отримуємо оновлені дані
+    const response = await axiosInstance.get('/cart/')
+    const updatedCart = response.data
+    
+    // Відновлюємо порядок елементів
+    const sortedItems = updatedCart.items.sort((a, b) => {
+      const indexA = currentOrder.indexOf(a.id)
+      const indexB = currentOrder.indexOf(b.id)
+      return indexA - indexB
+    })
+    
+    setCart({
+      ...updatedCart,
+      items: sortedItems
+    })
+    
+    // Dispatch cart update event to update header
+    window.dispatchEvent(new CustomEvent('cartUpdated'))
+    showNotification('✅ Кількість оновлено', 'success')
+  } catch (error) {
+    console.error('Error updating quantity:', error)
+    showNotification('❌ Помилка при оновленні кількості', 'error')
   }
-
+}
   const removeItem = async (itemId) => {
     try {
       await axiosInstance.delete(`/cart/items/${itemId}/remove/`)
