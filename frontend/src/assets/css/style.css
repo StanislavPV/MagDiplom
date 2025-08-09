@@ -552,6 +552,7 @@ html, body {
 .page-link:hover {
     background: #4a8bc2;
     color: white;
+    border-color: #4a8bc2;
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(74,139,194,0.3);
 }
@@ -1127,4 +1128,46 @@ html, body {
   flex-direction: column;
   gap: 0.75rem;
   margin-top: 0; /* Видалити відступ зверху */
+}
+.ratings-pagination {
+  padding: 1rem 0;
+  border-top: 1px solid #e9ecef;
+  margin-top: 1rem;
+}
+
+.btn-outline-primary {
+  transition: all 0.3s ease;
+}
+
+.btn-outline-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(74,139,194,0.3);
+}
+
+.btn-outline-secondary {
+  transition: all 0.3s ease;
+}
+
+.btn-outline-secondary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(108,117,125,0.3);
+}
+
+/* Стилі для пагінації */
+.pagination .page-item:first-child .page-link,
+.pagination .page-item:last-child .page-link {
+    font-weight: 500;
+    border-radius: 8px; /* Змінено з 10px на 8px для однаковості */
+    border: 1px solid #4a8bc2;
+    color: #4a8bc2;
+    background: transparent;
+}
+
+.pagination .page-item:first-child .page-link:hover,
+.pagination .page-item:last-child .page-link:hover {
+    background: #4a8bc2;
+    color: white;
+    border-color: #4a8bc2;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(74,139,194,0.3);
 }

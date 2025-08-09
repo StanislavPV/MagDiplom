@@ -226,6 +226,20 @@ const Main = () => {
     const currentPage = pagination.current_page
     const totalPages = pagination.total_pages
 
+    // First page button
+    if (currentPage > 1) {
+      pages.push(
+        <li key="first" className="page-item">
+          <button
+            className="page-link"
+            onClick={() => handlePageChange(1)}
+          >
+            Перша
+          </button>
+        </li>
+      )
+    }
+
     // Previous button
     if (currentPage > 1) {
       pages.push(
@@ -263,6 +277,20 @@ const Main = () => {
             onClick={() => handlePageChange(currentPage + 1)}
           >
             Наступна
+          </button>
+        </li>
+      )
+    }
+
+    // Last page button
+    if (currentPage < totalPages) {
+      pages.push(
+        <li key="last" className="page-item">
+          <button
+            className="page-link"
+            onClick={() => handlePageChange(totalPages)}
+          >
+            Остання
           </button>
         </li>
       )

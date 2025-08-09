@@ -14,6 +14,7 @@ const BookDetail = () => {
     const [showRatingForm, setShowRatingForm] = useState(false)
     const [newRating, setNewRating] = useState({ score: 5, review: '' })
     const [notification, setNotification] = useState(null)
+    const [visibleRatingsCount, setVisibleRatingsCount] = useState(5)
     const ratingFormRef = useRef(null)
 
     useEffect(() => {
@@ -37,7 +38,7 @@ const BookDetail = () => {
     // Scroll to rating form when it's shown
     useEffect(() => {
         if (showRatingForm && ratingFormRef.current) {
-            ratingFormRef.current.scrollIntoView({
+            ratingFormRef.current.scrollIntoView({ 
                 behavior: 'smooth',
                 block: 'center'
             })
@@ -89,7 +90,7 @@ const BookDetail = () => {
                 book: parseInt(id),
                 quantity: 1
             })
-
+            
             showNotification('✅ Книгу додано до кошика!', 'success')
             window.dispatchEvent(new CustomEvent('cartUpdated'))
         } catch (error) {
@@ -110,7 +111,7 @@ const BookDetail = () => {
                 book: parseInt(id),
                 quantity: 1
             })
-
+            
             window.dispatchEvent(new CustomEvent('cartUpdated'))
             showNotification('✅ Книгу додано до кошика!', 'success')
             navigate('/checkout')
@@ -213,12 +214,12 @@ const BookDetail = () => {
         <div className="container mt-4">
             {/* Notification Toast */}
             {notification && (
-                <div className={`alert alert-${notification.type === 'success' ? 'success' : notification.type === 'error' ? 'danger' : 'warning'} alert-dismissible fade show position-fixed`}
-                    style={{ top: '20px', right: '20px', zIndex: 1050, minWidth: '300px' }}>
+                <div className={`alert alert-${notification.type === 'success' ? 'success' : notification.type === 'error' ? 'danger' : 'warning'} alert-dismissible fade show position-fixed`} 
+                     style={{ top: '20px', right: '20px', zIndex: 1050, minWidth: '300px' }}>
                     {notification.message}
-                    <button
-                        type="button"
-                        className="btn-close"
+                    <button 
+                        type="button" 
+                        className="btn-close" 
                         onClick={() => setNotification(null)}
                     ></button>
                 </div>
@@ -294,7 +295,7 @@ const BookDetail = () => {
                             {/* Right column - Action buttons */}
                             <div className="col-lg-4">
                                 <div className="book-actions-vertical">
-                                    {/* Availability status */}
+                                    {/* Availability status - однаковий розмір з кнопками */}
                                     <div className="book-availability">
                                         {book.is_available ? (
                                             <div className="btn btn-success w-100 mb-3 availability-status">
@@ -335,7 +336,7 @@ const BookDetail = () => {
                                     {/* Login prompt for guests */}
                                     {!isLoggedIn && (
                                         <div className="alert alert-info">
-                                            <i className="fas fa-info-circle"></i>
+                                            <i className="fas fa-info-circle"></i> 
                                             <Link to="/login" className="text-decoration-none ms-1">
                                                 Увійдіть в систему
                                             </Link> для покупки та додавання в бажане
@@ -481,7 +482,7 @@ const BookDetail = () => {
                     <div className="card">
                         <div className="card-header d-flex justify-content-between align-items-center">
                             <h5 className="mb-0"><i className="fas fa-comments"></i> Відгуки ({ratings.length})</h5>
-
+                            
                             {/* Rating actions moved here */}
                             {isLoggedIn && (
                                 <div className="rating-actions">
@@ -537,29 +538,57 @@ const BookDetail = () => {
                                     <p>Будьте першим, хто залишить відгук про цю книгу!</p>
                                 </div>
                             ) : (
-                                ratings.map(rating => (
-                                    <div key={rating.id} className="border-bottom pb-3 mb-3">
-                                        <div className="d-flex justify-content-between align-items-start">
-                                            <div>
-                                                <div className="d-flex align-items-center mb-2">
-                                                    <strong className="me-2 text-primary">{rating.user_name}</strong>
-                                                    <div className="me-2">
-                                                        {renderStars(rating.score)}
+                                <>
+                                    {ratings.slice(0, visibleRatingsCount).map(rating => (
+                                        <div key={rating.id} className="border-bottom pb-3 mb-3">
+                                            <div className="d-flex justify-content-between align-items-start">
+                                                <div>
+                                                    <div className="d-flex align-items-center mb-2">
+                                                        <strong className="me-2 text-primary">{rating.user_name}</strong>
+                                                        <div className="me-2">
+                                                            {renderStars(rating.score)}
+                                                        </div>
+                                                        <small className="text-muted">
+                                                            {new Date(rating.created_at).toLocaleDateString('uk-UA')}
+                                                        </small>
                                                     </div>
-                                                    <small className="text-muted">
-                                                        {new Date(rating.created_at).toLocaleDateString('uk-UA')}
-                                                    </small>
+                                                    {rating.review && (
+                                                        <p className="mb-0 text-dark">{rating.review}</p>
+                                                    )}
                                                 </div>
-                                                {rating.review && (
-                                                    <p className="mb-0 text-dark">{rating.review}</p>
+                                                {rating.is_own_rating && (
+                                                    <span className="badge bg-primary">Ваш відгук</span>
                                                 )}
                                             </div>
-                                            {rating.is_own_rating && (
-                                                <span className="badge bg-primary">Ваш відгук</span>
-                                            )}
                                         </div>
-                                    </div>
-                                ))
+                                    ))}
+                                    
+                                    {/* Кнопка "Показати ще" */}
+                                    {ratings.length > visibleRatingsCount && (
+                                        <div className="text-center mt-3">
+                                            <button
+                                                onClick={() => setVisibleRatingsCount(prev => prev + 5)}
+                                                className="btn btn-outline-primary"
+                                            >
+                                                <i className="fas fa-chevron-down me-2"></i>
+                                                Показати ще ({ratings.length - visibleRatingsCount} відгуків)
+                                            </button>
+                                        </div>
+                                    )}
+                                    
+                                    {/* Кнопка "Показати менше" якщо показано більше 5 */}
+                                    {visibleRatingsCount > 5 && ratings.length > 5 && (
+                                        <div className="text-center mt-2">
+                                            <button
+                                                onClick={() => setVisibleRatingsCount(5)}
+                                                className="btn btn-outline-secondary btn-sm"
+                                            >
+                                                <i className="fas fa-chevron-up me-2"></i>
+                                                Показати менше
+                                            </button>
+                                        </div>
+                                    )}
+                                </>
                             )}
                         </div>
                     </div>
