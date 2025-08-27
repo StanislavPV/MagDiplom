@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'ratings',
     'cart',
     'orders',
+    'recommender'
 
 ]
 

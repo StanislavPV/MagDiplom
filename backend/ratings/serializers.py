@@ -1,12 +1,14 @@
 from rest_framework import serializers
 from .models import Rating
+from orders.models import OrderItem
 
 
 class RatingSerializer(serializers.ModelSerializer):
-    user_name = serializers.CharField(source='user.name', read_only=True)  # Changed from username to name
+    user_name = serializers.CharField(source='user.name', read_only=True)
     user_id = serializers.IntegerField(source='user.id', read_only=True)
     book_title = serializers.CharField(source='book.title', read_only=True)
     is_own_rating = serializers.SerializerMethodField()
+    purchased_on_site = serializers.SerializerMethodField()
     
     class Meta:
         model = Rating
@@ -15,6 +17,14 @@ class RatingSerializer(serializers.ModelSerializer):
     def get_is_own_rating(self, obj):
         user = self.context.get('request', {}).user
         return user.is_authenticated and obj.user == user
+    
+    def get_purchased_on_site(self, obj):
+        """Перевіряє чи користувач купував цю книгу на нашому сайті"""
+        return OrderItem.objects.filter(
+            order__user=obj.user,
+            book=obj.book,
+            order__is_completed=True
+        ).exists()
 
 
 class RatingCreateUpdateSerializer(serializers.ModelSerializer):
@@ -43,17 +53,16 @@ class UserRatingSerializer(serializers.ModelSerializer):
     """Serializer for user's own ratings with book details"""
     book_title = serializers.CharField(source='book.title', read_only=True)
     book_image = serializers.ImageField(source='book.image', read_only=True)
+    purchased_on_site = serializers.SerializerMethodField()
     
     class Meta:
         model = Rating
         fields = '__all__'
-
-
-class UserRatingSerializer(serializers.ModelSerializer):
-    """Serializer for user's own ratings with book details"""
-    book_title = serializers.CharField(source='book.title', read_only=True)
-    book_image = serializers.ImageField(source='book.image', read_only=True)
     
-    class Meta:
-        model = Rating
-        fields = '__all__'
+    def get_purchased_on_site(self, obj):
+        """Перевіряє чи користувач купував цю книгу на нашому сайті"""
+        return OrderItem.objects.filter(
+            order__user=obj.user,
+            book=obj.book,
+            order__is_completed=True
+        ).exists()

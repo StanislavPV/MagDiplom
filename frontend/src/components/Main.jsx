@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useContext } from 'react'
+import { useState, useEffect, useContext } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { AuthContext } from '../AuthProvider'
 import axiosInstance from '../axiosInstance'
+import { AuthContext } from '../AuthProvider'
 import PopularBooksCarousel from './PopularBooksCarousel'
+import ContRec from './ContRec'
 
 const Main = () => {
   const { isLoggedIn } = useContext(AuthContext)
@@ -61,7 +62,10 @@ const Main = () => {
       let url = '/books/?ordering=-year'
 
       if (searchParams.toString()) {
-        url += `&${searchParams.toString()}`
+        url = `/books/?${searchParams.toString()}`
+        if (!searchParams.has('ordering')) {
+          url += '&ordering=-year'
+        }
       }
 
       const response = await axiosInstance.get(url)
@@ -69,12 +73,16 @@ const Main = () => {
 
       // Handle pagination
       if (response.data.count !== undefined) {
+        const currentPage = parseInt(searchParams.get('page') || '1')
+        const pageSize = 8
+        const totalPages = Math.ceil(response.data.count / pageSize)
+
         setPagination({
           count: response.data.count,
           next: response.data.next,
           previous: response.data.previous,
-          current_page: searchParams.get('page') ? parseInt(searchParams.get('page')) : 1,
-          total_pages: Math.ceil(response.data.count / 8)
+          current_page: currentPage,
+          total_pages: totalPages
         })
       }
     } catch (error) {
@@ -177,6 +185,55 @@ const Main = () => {
     navigate(`/?${searchParams.toString()}`)
   }
 
+  // Функція для додавання книги до переглянутих з терміном життя 1 день
+  const addBookToViewed = (bookId) => {
+    const now = new Date().getTime()
+    const expiryTime = 24 * 60 * 60 * 1000 // 1 день в мілісекундах
+    
+    // Отримуємо існуючі дані
+    let viewedData = localStorage.getItem('viewedBooks')
+    let viewedBooks = []
+    
+    if (viewedData) {
+      try {
+        const parsed = JSON.parse(viewedData)
+        // Перевіряємо чи не застарілі дані
+        if (parsed.expiry && now < parsed.expiry) {
+          viewedBooks = Array.isArray(parsed.books) ? parsed.books : []
+        }
+      } catch (error) {
+        console.log('Invalid viewed books data, resetting')
+      }
+    }
+    
+    // Видаляємо книгу з поточної позиції, якщо вона вже є
+    const filteredBooks = viewedBooks.filter(id => id !== bookId)
+    
+    // Додаємо книгу на початок
+    const updatedBooks = [bookId, ...filteredBooks]
+    
+    // Обмежуємо до 5 останніх книг
+    const limitedBooks = updatedBooks.slice(0, 5)
+    
+    // Зберігаємо з терміном життя
+    const dataToStore = {
+      books: limitedBooks,
+      expiry: now + expiryTime
+    }
+    
+    localStorage.setItem('viewedBooks', JSON.stringify(dataToStore))
+    
+    // Відправляємо подію для оновлення рекомендацій
+    window.dispatchEvent(new CustomEvent('viewedBooksUpdated', { 
+      detail: { viewedBooks: limitedBooks } 
+    }))
+  }
+
+  const handleBookClick = (bookId) => {
+    addBookToViewed(bookId)
+    navigate(`/books/${bookId}`)
+  }
+
   const renderStars = (rating) => {
     const stars = []
     const fullStars = Math.floor(rating || 0)
@@ -210,10 +267,10 @@ const Main = () => {
       return `Результат пошуку "${searchTerm}"`
     } else if (genreId) {
       const genre = genres.find(g => g.id.toString() === genreId)
-      return `Книги категорії "${genre?.name || 'Невідома категорія'}"`
+      return `Категорія "${genre?.name || 'Невідома категорія'}"`
     } else if (authorId) {
       const author = authors.find(a => a.id.toString() === authorId)
-      return `Книги автора "${author?.name || 'Невідомий автор'}"`
+      return `Автор "${author?.name || 'Невідомий автор'}"`
     }
 
     return 'Наші книги'
@@ -339,6 +396,9 @@ const Main = () => {
           {/* Popular Books Carousel - показувати тільки на головній сторінці */}
           {!location.search && <PopularBooksCarousel />}
 
+          {/* Recommendations Carousel - показувати тільки на головній сторінці */}
+          {!location.search && <ContRec />}
+
           <div className="row">
             <div className="col-12">
               <div className="d-flex align-items-center justify-content-between mb-4">
@@ -371,7 +431,7 @@ const Main = () => {
                     <div key={book.id} className="col-xl-3 col-lg-4 col-md-6 col-sm-6 mb-4">
                       <div className="card h-100 book-card">
                         <div className="card-img-wrapper">
-                          <Link to={`/books/${book.id}`}>
+                          <div onClick={() => handleBookClick(book.id)} style={{ cursor: 'pointer' }}>
                             {book.image ? (
                               <img
                                 src={book.image}
@@ -392,7 +452,7 @@ const Main = () => {
                                 <i className="fas fa-book fa-3x text-muted"></i>
                               </div>
                             )}
-                          </Link>
+                          </div>
                           {!book.is_available && (
                             <div className="position-absolute top-0 end-0 m-2">
                               <span className="badge bg-danger">Немає в наявності</span>
@@ -415,9 +475,13 @@ const Main = () => {
 
                         <div className="card-body d-flex flex-column">
                           <h6 className="card-title fw-bold text-truncate" title={book.title}>
-                            <Link to={`/books/${book.id}`} className="text-decoration-none text-dark">
+                            <span 
+                              onClick={() => handleBookClick(book.id)} 
+                              className="text-decoration-none text-dark"
+                              style={{ cursor: 'pointer' }}
+                            >
                               {book.title}
-                            </Link>
+                            </span>
                           </h6>
 
                           <p className="card-text text-muted small mb-2">

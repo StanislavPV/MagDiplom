@@ -4,10 +4,11 @@ from books import views as BookViews
 from ratings import views as RatingViews
 from cart import views as CartViews
 from orders import views as OrderViews
+from recommender import views as RecommenderViews
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-
 urlpatterns = [
+    # Authentication
     path('register/', UserViews.RegisterView.as_view(), name='register'),
     path('login/', TokenObtainPairView.as_view(), name='login'),
     path('login/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
@@ -48,4 +49,9 @@ urlpatterns = [
     path('orders/<int:pk>/', OrderViews.OrderDetailView.as_view(), name='order-detail'),
     path('orders/create/', OrderViews.create_order, name='create-order'),
     path('orders/user-data/', OrderViews.get_user_data, name='user-data'),
+    
+     # Recommender System
+    path('recommendations/', RecommenderViews.get_recommendations, name='get-recommendations'),
+    path('track-view/', RecommenderViews.track_book_view, name='track-book-view'),
+    
 ]
