@@ -5,6 +5,7 @@ import pickle
 import numpy as np
 
 
+# Зберігає векторні представлення книг для рекомендаційної системи
 class BookVector(models.Model):
     book = models.OneToOneField(Book, related_name='vector', on_delete=models.CASCADE)
     vector = models.BinaryField()

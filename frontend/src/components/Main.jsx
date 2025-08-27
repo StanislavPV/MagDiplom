@@ -5,6 +5,7 @@ import { AuthContext } from '../AuthProvider'
 import PopularBooksCarousel from './PopularBooksCarousel'
 import ContRec from './ContRec'
 
+// Головна сторінка з каталогом книг, пошуком та рекомендаціями
 const Main = () => {
   const { isLoggedIn } = useContext(AuthContext)
   const [books, setBooks] = useState([])
@@ -28,7 +29,7 @@ const Main = () => {
     fetchAuthors()
   }, [location.search])
 
-  // Auto-hide notification after 3 seconds
+  // Автоматично ховаємо сповіщення через 3 секунди
   useEffect(() => {
     if (notification) {
       const timer = setTimeout(() => {
@@ -380,7 +381,7 @@ const Main = () => {
     <div className="page-content">
       <div className='main-container'>
         <div className='container mt-4'>
-          {/* Notification Toast */}
+          {/* Сповіщення */}
           {notification && (
             <div className={`alert alert-${notification.type === 'success' ? 'success' : notification.type === 'error' ? 'danger' : 'warning'} alert-dismissible fade show position-fixed`}
               style={{ top: '20px', right: '20px', zIndex: 1050, minWidth: '300px' }}>
@@ -393,10 +394,8 @@ const Main = () => {
             </div>
           )}
 
-          {/* Popular Books Carousel - показувати тільки на головній сторінці */}
+          {/* Каруселі популярних книг та рекомендацій - показувати тільки на головній сторінці */}
           {!location.search && <PopularBooksCarousel />}
-
-          {/* Recommendations Carousel - показувати тільки на головній сторінці */}
           {!location.search && <ContRec />}
 
           <div className="row">

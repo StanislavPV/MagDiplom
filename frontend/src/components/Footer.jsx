@@ -1,5 +1,6 @@
 import React from 'react'
 
+// Компонент футера з контактною інформацією та соціальними мережами
 function Footer() {
   return (
     <footer className='footer bg-dark text-light py-4 mt-5'>
@@ -77,7 +78,7 @@ function Footer() {
 
         <hr className='my-4' />
         
-        {/* Copyright */}
+        {/* Авторські права */}
         <div className='row'>
           <div className='col-12 text-center'>
             <p className='mb-0'>&copy; 2025 BookStore. Всі права захищені ❤️</p>

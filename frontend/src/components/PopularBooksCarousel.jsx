@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import axiosInstance from '../axiosInstance'
 
+// Компонент карусель популярних книг на основі рейтингу
 const PopularBooksCarousel = () => {
   const [popularBooks, setPopularBooks] = useState([])
   const [loading, setLoading] = useState(true)
@@ -84,7 +85,7 @@ const PopularBooksCarousel = () => {
       </div>
 
       <div className="position-relative">
-        {/* Carousel Container */}
+        {/* Контейнер карусель */}
         <div className="overflow-hidden">
           <div 
             className="d-flex transition-transform"
@@ -149,7 +150,7 @@ const PopularBooksCarousel = () => {
           </div>
         </div>
 
-        {/* Navigation Arrows */}
+        {/* Кнопки навігації */}
         {popularBooks.length > 4 && (
           <>
             <button
@@ -170,7 +171,7 @@ const PopularBooksCarousel = () => {
         )}
       </div>
 
-      {/* Dots indicator */}
+      {/* Індикатори точок */}
       {popularBooks.length > 4 && (
         <div className="d-flex justify-content-center mt-3">
           {Array.from({ length: Math.max(1, popularBooks.length - 3) }, (_, index) => (

@@ -4,6 +4,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { AuthContext } from '../AuthProvider'
 import axiosInstance from '../axiosInstance'
 
+{/* Компонент хедера з навігацією, пошуком та фільтрами */}
 const Header = () => {
   const { isLoggedIn, setIsLoggedIn } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -21,7 +22,7 @@ const Header = () => {
   useEffect(() => {
     fetchGenres();
     fetchAuthors();
-    // Set current search values from URL
+    // Встановлюємо поточні значення пошуку з URL
     const searchParams = new URLSearchParams(location.search);
     setSearchTerm(searchParams.get('search') || '');
     setSelectedGenre(searchParams.get('genres') || '');
@@ -32,12 +33,12 @@ const Header = () => {
       max: searchParams.get('max_price') || ''
     });
     
-    // Fetch cart summary if logged in
+    // Отримуємо підсумок кошика для авторизованих користувачів
     if (isLoggedIn) {
       fetchCartSummary();
     }
 
-    // Listen for cart updates
+    // Слухаємо оновлення кошика
     const handleCartUpdate = () => {
       if (isLoggedIn) {
         fetchCartSummary();

@@ -3,6 +3,7 @@ from .models import Rating
 from orders.models import OrderItem
 
 
+# Серіалайзер для відображення рейтингів
 class RatingSerializer(serializers.ModelSerializer):
     user_name = serializers.CharField(source='user.name', read_only=True)
     user_id = serializers.IntegerField(source='user.id', read_only=True)
@@ -27,6 +28,7 @@ class RatingSerializer(serializers.ModelSerializer):
         ).exists()
 
 
+# Серіалайзер для створення/оновлення рейтингів
 class RatingCreateUpdateSerializer(serializers.ModelSerializer):
     """Serializer for creating/updating ratings"""
     
@@ -49,6 +51,7 @@ class RatingCreateUpdateSerializer(serializers.ModelSerializer):
         return value
 
 
+# Серіалайзер для власних рейтингів користувача з деталями книг
 class UserRatingSerializer(serializers.ModelSerializer):
     """Serializer for user's own ratings with book details"""
     book_title = serializers.CharField(source='book.title', read_only=True)
@@ -60,7 +63,7 @@ class UserRatingSerializer(serializers.ModelSerializer):
         fields = '__all__'
     
     def get_purchased_on_site(self, obj):
-        """Перевіряє чи користувач купував цю книгу на нашому сайті"""
+        """Перевіряє чи користувач купував цю книгу на сайті"""
         return OrderItem.objects.filter(
             order__user=obj.user,
             book=obj.book,

@@ -11,6 +11,7 @@ from django.db.models import Q
 from sklearn.metrics.pairwise import cosine_similarity
 
 
+# Генерує рекомендації книг на основі переглянутих користувачем
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def get_recommendations(request):
@@ -101,6 +102,7 @@ def get_recommendations(request):
         )
 
 
+# Відстежує перегляд книги користувачем
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def track_book_view(request):

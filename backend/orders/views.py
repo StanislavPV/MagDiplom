@@ -11,10 +11,10 @@ from .serializers import (
 )
 
 
+# Створює замовлення з кошика користувача
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_order(request):
-    """Create order from user's cart"""
     serializer = OrderCreateSerializer(data=request.data, context={'request': request})
     
     if serializer.is_valid():
@@ -27,10 +27,10 @@ def create_order(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+# Отримує дані користувача для форми замовлення
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_user_data(request):
-    """Get user data for order form pre-filling"""
     user = request.user
     return Response({
         'contact_name': user.name,
@@ -39,8 +39,8 @@ def get_user_data(request):
     })
 
 
+# Отримує список замовлень користувача
 class UserOrdersView(generics.ListAPIView):
-    """List user's orders"""
     serializer_class = OrderListSerializer
     permission_classes = [IsAuthenticated]
     
@@ -48,8 +48,8 @@ class UserOrdersView(generics.ListAPIView):
         return Order.objects.filter(user=self.request.user).order_by('-created_at')
 
 
+# Отримує детальну інформацію про замовлення
 class OrderDetailView(generics.RetrieveAPIView):
-    """Get order details"""
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
     

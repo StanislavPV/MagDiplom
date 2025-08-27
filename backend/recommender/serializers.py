@@ -3,6 +3,7 @@ from .models import BookVector
 from books.serializers import BookCatalogSerializer
 
 
+# Серіалайзер для векторних представлень книг
 class BookVectorSerializer(serializers.ModelSerializer):
     book = BookCatalogSerializer(read_only=True)
     
@@ -11,6 +12,7 @@ class BookVectorSerializer(serializers.ModelSerializer):
         fields = ['book']
 
 
+# Серіалайзер для запитів рекомендацій
 class RecommendationRequestSerializer(serializers.Serializer):
     viewed_books = serializers.ListField(
         child=serializers.IntegerField(),
@@ -19,5 +21,6 @@ class RecommendationRequestSerializer(serializers.Serializer):
     )
 
 
+# Серіалайзер для відстеження переглядів книг
 class BookViewTrackSerializer(serializers.Serializer):
     book_id = serializers.IntegerField(required=True)

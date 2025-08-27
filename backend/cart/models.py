@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from books.models import Book
 
 
+# Зберігає кошик покупок користувача
 class Cart(models.Model):
     user = models.OneToOneField(
         get_user_model(), 
@@ -24,6 +25,7 @@ class Cart(models.Model):
         return sum(item.total_price for item in self.items.all())
 
 
+# Зберігає окремі товари в кошику
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, related_name='items', on_delete=models.CASCADE)
     book = models.ForeignKey(Book, on_delete=models.CASCADE)

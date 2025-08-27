@@ -12,8 +12,8 @@ from .serializers import (
 )
 
 
+# Отримує всі рейтинги для конкретної книги
 class BookRatingsListView(generics.ListAPIView):
-    """List all ratings for a specific book"""
     serializer_class = RatingSerializer
     
     def get_queryset(self):
@@ -21,8 +21,8 @@ class BookRatingsListView(generics.ListAPIView):
         return Rating.objects.filter(book_id=book_id).order_by('-created_at')
 
 
+# Отримує рейтинги поточного користувача
 class UserRatingsListView(generics.ListAPIView):
-    """List current user's ratings"""
     serializer_class = UserRatingSerializer
     permission_classes = [IsAuthenticated]
     
@@ -30,8 +30,8 @@ class UserRatingsListView(generics.ListAPIView):
         return Rating.objects.filter(user=self.request.user).order_by('-created_at')
 
 
+# Створює новий рейтинг
 class CreateRatingView(generics.CreateAPIView):
-    """Create a new rating"""
     serializer_class = RatingCreateUpdateSerializer
     permission_classes = [IsAuthenticated]
     
@@ -39,8 +39,8 @@ class CreateRatingView(generics.CreateAPIView):
         serializer.save(user=self.request.user)
 
 
+# Оновлює власний рейтинг користувача
 class UpdateRatingView(generics.UpdateAPIView):
-    """Update user's own rating"""
     serializer_class = RatingCreateUpdateSerializer
     permission_classes = [IsAuthenticated]
     
@@ -48,8 +48,8 @@ class UpdateRatingView(generics.UpdateAPIView):
         return Rating.objects.filter(user=self.request.user)
 
 
+# Видаляє власний рейтинг користувача
 class DeleteRatingView(generics.DestroyAPIView):
-    """Delete user's own rating"""
     serializer_class = RatingSerializer
     permission_classes = [IsAuthenticated]
     
@@ -57,10 +57,10 @@ class DeleteRatingView(generics.DestroyAPIView):
         return Rating.objects.filter(user=self.request.user)
 
 
+# Управляє рейтингом користувача для конкретної книги
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
 @permission_classes([IsAuthenticated])
 def user_book_rating(request, book_id):
-    """Manage user's rating for a specific book"""
     book = get_object_or_404(Book, id=book_id)
     
     try:
@@ -69,19 +69,16 @@ def user_book_rating(request, book_id):
         rating = None
     
     if request.method == 'GET':
-        # Get user's rating for this book
         if rating:
             serializer = RatingSerializer(rating, context={'request': request})
             return Response(serializer.data)
         return Response({'message': 'No rating found'}, status=status.HTTP_404_NOT_FOUND)
     
     elif request.method == 'POST':
-        # Create new rating
         if rating:
             return Response({'error': 'Rating already exists. Use PUT to update.'}, 
                           status=status.HTTP_400_BAD_REQUEST)
         
-        # Add book to the data before validation
         data = request.data.copy()
         data['book'] = book_id
         
@@ -92,16 +89,13 @@ def user_book_rating(request, book_id):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     elif request.method == 'PUT':
-        # Update existing rating
         if not rating:
             return Response({'error': 'No rating found to update'}, 
                           status=status.HTTP_404_NOT_FOUND)
         
-        # FIX: Use a simpler approach - just update the fields directly
         score = request.data.get('score')
         review = request.data.get('review', '')
         
-        # Validate score
         if score is None:
             return Response({'error': 'Score is required'}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -114,17 +108,14 @@ def user_book_rating(request, book_id):
             return Response({'error': 'Score must be a valid number'}, 
                           status=status.HTTP_400_BAD_REQUEST)
         
-        # Update the rating
         rating.score = score
         rating.review = review
         rating.save()
         
-        # Return updated rating
         serializer = RatingSerializer(rating, context={'request': request})
         return Response(serializer.data)
     
     elif request.method == 'DELETE':
-        # Delete rating
         if not rating:
             return Response({'error': 'No rating found to delete'}, 
                           status=status.HTTP_404_NOT_FOUND)

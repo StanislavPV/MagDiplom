@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from books.models import Book
 from django.core.validators import MinValueValidator, MaxValueValidator
 
+# Зберігає рейтинги та відгуки користувачів про книги
 class Rating(models.Model):
     book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='ratings')
     user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)

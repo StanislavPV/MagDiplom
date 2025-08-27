@@ -16,6 +16,7 @@ import PublicRoute from './PublicRoute'
 import OrderDetail from './components/OrderDetail'
 import './assets/css/style.css'
 
+// Головний компонент додатку з налаштуванням маршрутизації
 function App() {
   return (
     <>

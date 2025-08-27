@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axiosInstance from '../axiosInstance'
 
+// Компонент карусель персональних рекомендацій на основі переглянутих книг
 const ContRec = () => {
   const [recommendations, setRecommendations] = useState([])
   const [loading, setLoading] = useState(true)

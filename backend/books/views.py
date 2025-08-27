@@ -16,8 +16,9 @@ class BookPagination(PageNumberPagination):
     max_page_size = 100
 
 
+# Відображає список всіх доступних книг з фільтрацією та пошуком
 class BookListView(generics.ListAPIView):
-    """Main page - list all books with basic info"""
+    """Головна сторінка - список всіх книг з основною інформацією"""
     queryset = Book.objects.filter(is_available=True)
     serializer_class = BookCatalogSerializer
     filter_backends = [filters.SearchFilter]  # Видаляємо OrderingFilter
@@ -29,17 +30,17 @@ class BookListView(generics.ListAPIView):
             average_rating=Avg('ratings__score')
         ).distinct()  # Важливо для ManyToMany полів
         
-        # Filter by genres
+        # Фільтр за жанрами
         genres = self.request.query_params.get('genres', None)
         if genres:
             queryset = queryset.filter(genres__id=genres)
         
-        # Filter by author
+        # Фільтр за автором
         author = self.request.query_params.get('author', None)
         if author:
             queryset = queryset.filter(author__id=author)
             
-        # Filter by price range
+        # Фільтр за ціновим діапазоном
         min_price = self.request.query_params.get('min_price', None)
         max_price = self.request.query_params.get('max_price', None)
         
@@ -51,7 +52,7 @@ class BookListView(generics.ListAPIView):
         # Застосовуємо distinct() після фільтрів
         queryset = queryset.distinct()
             
-        # Rating filter with proper NULL handling
+        # Сортування за рейтингом
         rating_order = self.request.query_params.get('rating_order', None)
         if rating_order == 'desc':
             # Книги з рейтингом спочатку (від вищого до нижчого), потім без рейтингу
@@ -84,7 +85,7 @@ class BookListView(generics.ListAPIView):
     def list(self, request, *args, **kwargs):
         response = super().list(request, *args, **kwargs)
         
-        # Add price range info to response
+        # Додаємо інформацію про ціновий діапазон до відповіді
         all_books = Book.objects.filter(is_available=True, price__isnull=False)
         price_range = all_books.aggregate(
             min_price=Min('price'),
@@ -95,9 +96,10 @@ class BookListView(generics.ListAPIView):
         return response
 
 
+# Отримує популярні книги на основі рейтингу
 @api_view(['GET'])
 def popular_books(request):
-    """Get popular books based on rating"""
+    """Отримати популярні книги на основі рейтингу"""
     books = Book.objects.filter(is_available=True).annotate(
         avg_rating=Avg('ratings__score')
     ).filter(avg_rating__isnull=False).order_by('-avg_rating', 'id')[:7]
@@ -106,26 +108,30 @@ def popular_books(request):
     return Response(serializer.data)
 
 
+# Відображає детальну інформацію про книгу
 class BookDetailView(generics.RetrieveAPIView):
-    """Book detail page with full info"""
+    """Сторінка детальної інформації про книгу"""
     queryset = Book.objects.all()
     serializer_class = BookDetailSerializer
 
 
+# Отримує список всіх жанрів
 class GenreListView(generics.ListAPIView):
-    """List all genres"""
+    """Список всіх жанрів"""
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
 
 
+# Отримує список всіх авторів
 class AuthorListView(generics.ListAPIView):
-    """List all authors"""
+    """Список всіх авторів"""
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
 
 
+# Управляє списком бажань користувача
 class WishlistView(generics.ListCreateAPIView):
-    """User's wishlist - list and add books"""
+    """Список бажань користувача - перегляд та додавання книг"""
     serializer_class = WishlistSerializer
     permission_classes = [IsAuthenticated]
     
@@ -133,8 +139,9 @@ class WishlistView(generics.ListCreateAPIView):
         return Wishlist.objects.filter(user=self.request.user)
 
 
+# Видаляє книгу зі списку бажань
 class WishlistDeleteView(generics.DestroyAPIView):
-    """Remove book from wishlist"""
+    """Видалити книгу зі списку бажань"""
     serializer_class = WishlistSerializer
     permission_classes = [IsAuthenticated]
     
@@ -142,10 +149,11 @@ class WishlistDeleteView(generics.DestroyAPIView):
         return Wishlist.objects.filter(user=self.request.user)
 
 
+# Додає або видаляє книгу зі списку бажань
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def toggle_wishlist(request):
-    """Add/remove book from wishlist"""
+    """Додати/видалити книгу зі списку бажань"""
     book_id = request.data.get('book_id')
     
     if not book_id:
@@ -162,9 +170,9 @@ def toggle_wishlist(request):
     )
     
     if not created:
-        # Remove from wishlist
+        # Видалити зі списку бажань
         wishlist_item.delete()
         return Response({'message': 'Removed from wishlist', 'in_wishlist': False})
     else:
-        # Added to wishlist
+        # Додано до списку бажань
         return Response({'message': 'Added to wishlist', 'in_wishlist': True})

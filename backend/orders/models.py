@@ -4,6 +4,7 @@ from books.models import Book
 import uuid
 
 
+# Зберігає інформацію про замовлення користувача
 class Order(models.Model):
     PAYMENT_METHOD_CHOICES = [
         ('cash', 'Наложений платіж'),
@@ -13,22 +14,22 @@ class Order(models.Model):
     user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name='orders')
     order_number = models.CharField(max_length=20, unique=True, blank=True)
     
-    # Contact information (pre-filled from user profile, but editable)
+    # Контактна інформація
     contact_email = models.EmailField(max_length=255)
-    contact_phone = models.CharField(max_length=20)  # Pre-filled from user.phone_number
-    contact_name = models.CharField(max_length=255)  # Pre-filled from user.name
+    contact_phone = models.CharField(max_length=20)
+    contact_name = models.CharField(max_length=255)
     
-    # Delivery information
+    # Інформація про доставку
     delivery_address = models.CharField(max_length=255)
     
-    # Payment information
+    # Інформація про оплату
     payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES)
-    card_details = models.CharField(max_length=255, blank=True, null=True)  # For card payments
+    card_details = models.CharField(max_length=255, blank=True, null=True)
     
-    # Order totals
+    # Підсумки замовлення
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     
-    # Order completion
+    # Статус замовлення
     is_completed = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(null=True, blank=True)
@@ -52,14 +53,15 @@ class Order(models.Model):
         ordering = ['-created_at']
 
 
+# Зберігає окремі товари в замовленні
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)
     book = models.ForeignKey(Book, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
-    unit_price = models.DecimalField(max_digits=10, decimal_places=2)  # Price at time of order
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2)
 
     def save(self, *args, **kwargs):
-        # Auto-populate unit price if not provided
+        # Автоматично встановлюємо ціну якщо не вказана
         if not self.unit_price:
             self.unit_price = self.book.price or 0
         super().save(*args, **kwargs)

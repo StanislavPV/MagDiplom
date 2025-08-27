@@ -15,8 +15,8 @@ class AuthorSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+# Легкий серіалайзер для каталогу книг
 class BookCatalogSerializer(serializers.ModelSerializer):
-    """Lightweight serializer for catalog/main page listings"""
     genres = GenreSerializer(many=True, read_only=True)
     author = AuthorSerializer(many=True, read_only=True)
     average_rating = serializers.SerializerMethodField()
@@ -34,8 +34,8 @@ class BookCatalogSerializer(serializers.ModelSerializer):
         return obj.ratings.count()
 
 
+# Детальний серіалайзер для індивідуальних сторінок книг
 class BookDetailSerializer(serializers.ModelSerializer):
-    """Detailed serializer for individual book pages"""
     genres = GenreSerializer(many=True, read_only=True)
     author = AuthorSerializer(many=True, read_only=True)
     average_rating = serializers.SerializerMethodField()

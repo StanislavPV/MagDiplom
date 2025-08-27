@@ -8,7 +8,7 @@ const axiosInstance = axios.create({
     }
 })
 
-// Request Interceptor
+// Перехоплювач запитів для додавання токену авторизації
 axiosInstance.interceptors.request.use(
     function(config){
         const accessToken = localStorage.getItem('accessToken')
@@ -22,7 +22,7 @@ axiosInstance.interceptors.request.use(
     }
 )
 
-// Response Interceptor
+// Перехоплювач відповідей для обробки помилок авторизації
 axiosInstance.interceptors.response.use(
     function(response){
         return response;

@@ -36,9 +36,8 @@ class OrderSerializer(serializers.ModelSerializer):
         return obj.total_items
 
 
+# Серіалайзер для створення замовлень тільки з кошика
 class OrderCreateSerializer(serializers.ModelSerializer):
-    """Serializer for creating orders from cart only"""
-    
     class Meta:
         model = Order
         fields = [
@@ -96,8 +95,8 @@ class OrderCreateSerializer(serializers.ModelSerializer):
         return order
 
 
+# Легкий серіалайзер для списку замовлень
 class OrderListSerializer(serializers.ModelSerializer):
-    """Lightweight serializer for order list view"""
     total_items = serializers.SerializerMethodField()
     payment_method_display = serializers.CharField(source='get_payment_method_display', read_only=True)
     

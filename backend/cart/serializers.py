@@ -17,9 +17,8 @@ class CartItemSerializer(serializers.ModelSerializer):
         return obj.total_price
 
 
+# Серіалайзер для додавання товарів до кошика
 class CartItemCreateSerializer(serializers.ModelSerializer):
-    """Serializer for adding items to cart"""
-    
     class Meta:
         model = CartItem
         fields = ['book', 'quantity']
@@ -43,7 +42,7 @@ class CartItemCreateSerializer(serializers.ModelSerializer):
         book = validated_data['book']
         quantity = validated_data['quantity']
         
-        # Check if item already exists in cart
+        # Перевіряємо чи товар вже є в кошику
         cart_item, created = CartItem.objects.get_or_create(
             cart=cart,
             book=book,
@@ -51,16 +50,15 @@ class CartItemCreateSerializer(serializers.ModelSerializer):
         )
         
         if not created:
-            # Item exists, update quantity
+            # Товар існує, оновлюємо кількість
             cart_item.quantity += quantity
             cart_item.save()
         
         return cart_item
 
 
+# Серіалайзер для оновлення кількості товару в кошику
 class CartItemUpdateSerializer(serializers.ModelSerializer):
-    """Serializer for updating cart item quantity"""
-    
     class Meta:
         model = CartItem
         fields = ['quantity']

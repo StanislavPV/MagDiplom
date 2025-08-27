@@ -5,16 +5,19 @@ from django.db.models import Avg
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 
+# Зберігає жанри книг
 class Genre(models.Model):
     name = models.CharField(max_length=255, unique=True)
     def __str__(self):
         return self.name
 
+# Зберігає авторів книг
 class Author(models.Model):
     name = models.CharField(max_length=255, unique=True)
     def __str__(self):
         return self.name
 
+# Основна модель книги з усією інформацією
 class Book(models.Model):
     title = models.CharField(max_length=255)
     genres = models.ManyToManyField(Genre, related_name='books')
@@ -35,6 +38,7 @@ class Book(models.Model):
     def __str__(self):
         return self.title
 
+# Зберігає список бажань користувача
 class Wishlist(models.Model):
     user = models.ForeignKey('core.User', on_delete=models.CASCADE, related_name='wishlist')
     book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='wishlisted_by')

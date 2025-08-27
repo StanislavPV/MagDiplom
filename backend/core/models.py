@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 import re
 from django.core.exceptions import ValidationError
 
+# Менеджер для роботи з користувачами
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
@@ -22,6 +23,7 @@ class UserManager(BaseUserManager):
         return user
 
 
+# Кастомна модель користувача з email як основним ідентифікатором
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(max_length=255, unique=True)
     name = models.CharField(max_length=255)

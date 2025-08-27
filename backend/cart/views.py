@@ -13,8 +13,8 @@ from .serializers import (
 from books.models import Book
 
 
+# Отримує кошик користувача з усіма товарами
 class CartView(generics.RetrieveAPIView):
-    """Get user's cart with all items"""
     serializer_class = CartSerializer
     permission_classes = [IsAuthenticated]
     
@@ -23,10 +23,10 @@ class CartView(generics.RetrieveAPIView):
         return cart
 
 
+# Додає товар до кошика або оновлює кількість
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def add_to_cart(request):
-    """Add item to cart or update quantity if exists"""
     serializer = CartItemCreateSerializer(data=request.data, context={'request': request})
     
     if serializer.is_valid():
@@ -39,10 +39,10 @@ def add_to_cart(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+# Оновлює кількість товару в кошику
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 def update_cart_item(request, item_id):
-    """Update cart item quantity"""
     try:
         cart = Cart.objects.get(user=request.user)
         cart_item = CartItem.objects.get(id=item_id, cart=cart)
@@ -61,10 +61,10 @@ def update_cart_item(request, item_id):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+# Видаляє товар з кошика
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def remove_from_cart(request, item_id):
-    """Remove item from cart"""
     try:
         cart = Cart.objects.get(user=request.user)
         cart_item = CartItem.objects.get(id=item_id, cart=cart)
@@ -75,10 +75,10 @@ def remove_from_cart(request, item_id):
     return Response({'message': 'Item removed from cart'}, status=status.HTTP_204_NO_CONTENT)
 
 
+# Очищає всі товари з кошика
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def clear_cart(request):
-    """Clear all items from cart"""
     try:
         cart = Cart.objects.get(user=request.user)
         cart.items.all().delete()
@@ -87,10 +87,10 @@ def clear_cart(request):
         return Response({'message': 'Cart is already empty'}, status=status.HTTP_200_OK)
 
 
+# Отримує підсумок кошика (загальна кількість та ціна)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def cart_summary(request):
-    """Get cart summary (total items and price)"""
     try:
         cart = Cart.objects.get(user=request.user)
         return Response({
