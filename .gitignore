@@ -186,4 +186,17 @@ psd
 thumb
 sketch
 
-# End of https://www.toptal.com/developers/gitignore/api/django,react
+# End of https://www.toptal.com/developers/gitignore/api/django,reactrecommendations/Books.csv
+# Large dataset and model files
+recommendations/Books.csv
+recommendations/Users.csv
+recommendations/Ratings.csv
+recommendations/book_details.csv
+backend/user_based/*.pkl
+backend/recommender/*.pkl
+recommendations/*.pkl
+*.pkl
+
+# Jupyter notebooks
+recommendations/*.ipynb
+.ipynb_checkpoints/

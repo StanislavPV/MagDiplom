@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import axiosInstance from '../axiosInstance'
 import { AuthContext } from '../AuthProvider'
 import PopularBooksCarousel from './PopularBooksCarousel'
+import UserBased from './UserBased'  // Додати цей імпорт
 import ContRec from './ContRec'
 
 // Головна сторінка з каталогом книг, пошуком та рекомендаціями
@@ -394,9 +395,19 @@ const Main = () => {
             </div>
           )}
 
-          {/* Каруселі популярних книг та рекомендацій - показувати тільки на головній сторінці */}
-          {!location.search && <PopularBooksCarousel />}
-          {!location.search && <ContRec />}
+          {/* Каруселі - тільки на головній сторінці (без search параметрів) */}
+          {!location.search && (
+            <>
+              {/* 1. Популярні книги (завжди) */}
+              <PopularBooksCarousel />
+              
+              {/* 2. User-based рекомендації (тільки для авторизованих) */}
+              <UserBased />
+              
+              {/* 3. Content-based рекомендації (на основі переглянутих) */}
+              <ContRec />
+            </>
+          )}
 
           <div className="row">
             <div className="col-12">

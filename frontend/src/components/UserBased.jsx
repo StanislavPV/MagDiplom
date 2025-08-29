@@ -1,112 +1,143 @@
-import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect, useContext } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import axiosInstance from '../axiosInstance'
+import { AuthContext } from '../AuthProvider'
 
-// Компонент карусель персональних рекомендацій на основі переглянутих книг
-const ContRec = () => {
-  const [recommendations, setRecommendations] = useState([])
-  const [loading, setLoading] = useState(true)
+// Карусель user-based рекомендацій для авторизованих користувачів
+const UserBased = () => {
+  const { isLoggedIn } = useContext(AuthContext)
+  const [userBasedBooks, setUserBasedBooks] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+  const [notification, setNotification] = useState(null)
   const [currentSlide, setCurrentSlide] = useState(0)
   const navigate = useNavigate()
 
   useEffect(() => {
-    fetchRecommendations()
-    
-    // Слухач події оновлення переглянутих книг
-    const handleViewedBooksUpdate = (event) => {
-      console.log('Viewed books updated:', event.detail.viewedBooks)
-      fetchRecommendations()
+    if (isLoggedIn) {
+      fetchUserBasedRecommendations()
     }
-    
-    window.addEventListener('viewedBooksUpdated', handleViewedBooksUpdate)
-    
-    // Очищення слухача при демонтажі компонента
-    return () => {
-      window.removeEventListener('viewedBooksUpdated', handleViewedBooksUpdate)
-    }
-  }, [])
+  }, [isLoggedIn])
 
-  // Функція для отримання переглянутих книг з терміном життя
-  const getViewedBooks = () => {
-    const now = new Date().getTime()
-    let viewedData = localStorage.getItem('viewedBooks')
-    
-    if (!viewedData) return []
-    
+  // Автоматично ховаємо сповіщення через 3 секунди
+  useEffect(() => {
+    if (notification) {
+      const timer = setTimeout(() => {
+        setNotification(null)
+      }, 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [notification])
+
+  const fetchUserBasedRecommendations = async () => {
+    if (!isLoggedIn) return
+
+    setLoading(true)
+    setError(null)
+
     try {
-      const parsed = JSON.parse(viewedData)
-      // Перевіряємо чи не застарілі дані
-      if (parsed.expiry && now < parsed.expiry) {
-        return Array.isArray(parsed.books) ? parsed.books : []
+      const response = await axiosInstance.get('/user-recommendations/')
+      
+      if (response.data.recommendations && response.data.recommendations.length > 0) {
+        setUserBasedBooks(response.data.recommendations)
+        setCurrentSlide(0)
       } else {
-        // Видаляємо застарілі дані
-        localStorage.removeItem('viewedBooks')
-        return []
+        setError(response.data.message || 'Немає user-based рекомендацій')
       }
     } catch (error) {
-      console.log('Invalid viewed books data, resetting')
-      localStorage.removeItem('viewedBooks')
-      return []
-    }
-  }
-
-  const fetchRecommendations = async () => {
-    try {
-      // Отримуємо переглянуті книги з localStorage з перевіркою терміну життя
-      const viewedBooks = getViewedBooks()
-      
-      console.log('Fetching recommendations for books:', viewedBooks)
-      
-      if (viewedBooks.length === 0) {
-        setRecommendations([])
-        setLoading(false)
-        return
-      }
-
-      const response = await axiosInstance.post('/recommendations/', {
-        viewed_books: viewedBooks
-      })
-
-      console.log('Recommendations received:', response.data.recommendations?.length || 0)
-      
-      setRecommendations(response.data.recommendations || [])
-      setCurrentSlide(0) // Скидаємо слайд при оновленні рекомендацій
-    } catch (error) {
-      console.error('Error fetching recommendations:', error)
-      setRecommendations([])
+      console.error('Error fetching user-based recommendations:', error)
+      setError('Помилка при завантаженні персональних рекомендацій')
     } finally {
       setLoading(false)
     }
   }
 
-  // Функція для додавання книги до переглянутих з терміном життя
+  const showNotification = (message, type = 'success') => {
+    setNotification({ message, type })
+  }
+
+  const addToCart = async (bookId) => {
+    try {
+      await axiosInstance.post('/cart/add/', {
+        book: bookId,
+        quantity: 1
+      })
+
+      showNotification('✅ Книгу додано до кошика!', 'success')
+      window.dispatchEvent(new CustomEvent('cartUpdated'))
+    } catch (error) {
+      console.error('Error adding to cart:', error)
+      showNotification('❌ Помилка при додаванні до кошика', 'error')
+    }
+  }
+
+  const addToWishlist = async (bookId) => {
+    try {
+      const response = await axiosInstance.post('/wishlist/toggle/', { book_id: bookId })
+
+      setUserBasedBooks(prevBooks =>
+        prevBooks.map(book =>
+          book.id === bookId
+            ? { ...book, is_in_wishlist: response.data.in_wishlist }
+            : book
+        )
+      )
+
+      showNotification(
+        response.data.in_wishlist ? '❤️ Додано до бажаного' : '💔 Видалено з бажаного',
+        'success'
+      )
+    } catch (error) {
+      console.error('Error toggling wishlist:', error)
+      showNotification('❌ Помилка при додаванні до бажаного', 'error')
+    }
+  }
+
+  const buyNow = async (bookId) => {
+    try {
+      await axiosInstance.post('/cart/add/', {
+        book: bookId,
+        quantity: 1
+      })
+
+      window.dispatchEvent(new CustomEvent('cartUpdated'))
+      showNotification('✅ Книгу додано до кошика!', 'success')
+      navigate('/checkout')
+    } catch (error) {
+      console.error('Error adding to cart before checkout:', error)
+      showNotification('❌ Помилка при додаванні до кошика', 'error')
+    }
+  }
+
   const addBookToViewed = (bookId) => {
     const now = new Date().getTime()
-    const expiryTime = 24 * 60 * 60 * 1000 // 1 день в мілісекундах
+    const expiryTime = 24 * 60 * 60 * 1000
     
-    // Отримуємо існуючі дані
-    let viewedBooks = getViewedBooks()
+    let viewedData = localStorage.getItem('viewedBooks')
+    let viewedBooks = []
     
-    // Видаляємо книгу з поточної позиції, якщо вона вже є
+    if (viewedData) {
+      try {
+        const parsed = JSON.parse(viewedData)
+        if (parsed.expiry && now < parsed.expiry) {
+          viewedBooks = Array.isArray(parsed.books) ? parsed.books : []
+        }
+      } catch (error) {
+        console.log('Invalid viewed books data, resetting')
+      }
+    }
+    
     const filteredBooks = viewedBooks.filter(id => id !== bookId)
+    const updatedBooks = [bookId, ...filteredBooks].slice(0, 5)
     
-    // Додаємо книгу на початок
-    const updatedBooks = [bookId, ...filteredBooks]
-    
-    // Обмежуємо до 5 останніх книг
-    const limitedBooks = updatedBooks.slice(0, 5)
-    
-    // Зберігаємо з терміном життя
     const dataToStore = {
-      books: limitedBooks,
+      books: updatedBooks,
       expiry: now + expiryTime
     }
     
     localStorage.setItem('viewedBooks', JSON.stringify(dataToStore))
-    
-    // Відправляємо подію для оновлення рекомендацій
     window.dispatchEvent(new CustomEvent('viewedBooksUpdated', { 
-      detail: { viewedBooks: limitedBooks } 
+      detail: { viewedBooks: updatedBooks } 
     }))
   }
 
@@ -117,10 +148,8 @@ const ContRec = () => {
 
   const renderStars = (rating) => {
     const stars = []
-    // Переконуємося, що rating є числом або 0
-    const numericRating = Number(rating) || 0
-    const fullStars = Math.floor(numericRating)
-    const hasHalfStar = (numericRating % 1) >= 0.5
+    const fullStars = Math.floor(rating || 0)
+    const hasHalfStar = (rating || 0) % 1 !== 0
 
     for (let i = 0; i < 5; i++) {
       if (i < fullStars) {
@@ -134,47 +163,67 @@ const ContRec = () => {
     return stars
   }
 
+  // Carousel navigation
   const nextSlide = () => {
     setCurrentSlide((prev) => 
-      prev === Math.max(0, recommendations.length - 4) ? 0 : prev + 1
+      prev === Math.max(0, userBasedBooks.length - 4) ? 0 : prev + 1
     )
   }
 
   const prevSlide = () => {
     setCurrentSlide((prev) => 
-      prev === 0 ? Math.max(0, recommendations.length - 4) : prev - 1
+      prev === 0 ? Math.max(0, userBasedBooks.length - 4) : prev - 1
     )
   }
 
+  // Не показувати компонент для неавторизованих користувачів
+  if (!isLoggedIn) {
+    return null
+  }
+
+  // Показувати повідомлення про завантаження
   if (loading) {
     return (
       <div className="container mt-4">
         <div className="text-center">
           <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Завантаження рекомендацій...</span>
+            <span className="visually-hidden">Завантаження персональних рекомендацій...</span>
           </div>
         </div>
       </div>
     )
   }
 
-  if (recommendations.length === 0) {
+  // Не показувати компонент якщо є помилка або немає рекомендацій
+  if (error || !userBasedBooks || userBasedBooks.length === 0) {
     return null
   }
 
-  const viewedBooksCount = getViewedBooks().length
-
   return (
     <div className="container mt-5 mb-5">
+      {/* Сповіщення */}
+      {notification && (
+        <div className={`alert alert-${notification.type === 'success' ? 'success' : notification.type === 'error' ? 'danger' : 'warning'} alert-dismissible fade show position-fixed`}
+          style={{ top: '20px', right: '20px', zIndex: 1050, minWidth: '300px' }}>
+          {notification.message}
+          <button
+            type="button"
+            className="btn-close"
+            onClick={() => setNotification(null)}
+          ></button>
+        </div>
+      )}
+
       <div className="row">
         <div className="col-12">
           <div className="d-flex align-items-center justify-content-between mb-4">
             <h2 className="fw-bold text-primary mb-0">
-              <i className="fas fa-magic me-2"></i>
-              Вас може зацікавити
+              <i className="fas fa-users me-2"></i>
+              Персональні рекомендації
             </h2>
-            <span className="badge bg-info fs-6">
-              На основі переглядів
+            <span className="badge bg-primary fs-6">
+              <i className="fas fa-user-check me-1"></i>
+              Для вас
             </span>
           </div>
         </div>
@@ -190,12 +239,12 @@ const ContRec = () => {
               transition: 'transform 0.5s ease-in-out'
             }}
           >
-            {recommendations.map((book) => {
+            {userBasedBooks.map((book) => {
               const hasRating = book.average_rating && Number(book.average_rating) > 0
               
               return (
                 <div key={book.id} className="flex-shrink-0" style={{ width: '25%', padding: '0 10px' }}>
-                  <div className="card h-100 recommendation-card">
+                  <div className="card h-100 user-based-card">
                     <div className="popular-card-wrapper">
                       <div className="popular-book-image">
                         <div 
@@ -248,7 +297,6 @@ const ContRec = () => {
 
                         <div className="popular-book-rating mb-2">
                           {hasRating ? (
-                            // Горизонтальне розташування для книг з рейтингом
                             <div className="d-flex align-items-center">
                               <div className="me-2">
                                 {renderStars(book.average_rating)}
@@ -258,7 +306,6 @@ const ContRec = () => {
                               </small>
                             </div>
                           ) : (
-                            // Вертикальне розташування для книг без рейтингу
                             <div className="d-flex flex-column align-items-start">
                               <div className="mb-1">
                                 {renderStars(0)}
@@ -285,17 +332,17 @@ const ContRec = () => {
         </div>
 
         {/* Navigation Arrows */}
-        {recommendations.length > 4 && (
+        {userBasedBooks.length > 4 && (
           <>
             <button
-              className="recommendation-control recommendation-control-prev"
+              className="user-based-control user-based-control-prev"
               onClick={prevSlide}
               type="button"
             >
               <i className="fas fa-chevron-left"></i>
             </button>
             <button
-              className="recommendation-control recommendation-control-next"
+              className="user-based-control user-based-control-next"
               onClick={nextSlide}
               type="button"
             >
@@ -306,12 +353,12 @@ const ContRec = () => {
       </div>
 
       {/* Dots indicator */}
-      {recommendations.length > 4 && (
+      {userBasedBooks.length > 4 && (
         <div className="d-flex justify-content-center mt-3">
-          {Array.from({ length: Math.max(1, recommendations.length - 3) }, (_, index) => (
+          {Array.from({ length: Math.max(1, userBasedBooks.length - 3) }, (_, index) => (
             <button
               key={index}
-              className={`recommendation-dot ${currentSlide === index ? 'active' : ''}`}
+              className={`user-based-dot ${currentSlide === index ? 'active' : ''}`}
               onClick={() => setCurrentSlide(index)}
             />
           ))}
@@ -321,4 +368,4 @@ const ContRec = () => {
   )
 }
 
-export default ContRec
+export default UserBased

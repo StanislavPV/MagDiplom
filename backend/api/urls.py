@@ -5,6 +5,7 @@ from ratings import views as RatingViews
 from cart import views as CartViews
 from orders import views as OrderViews
 from recommender import views as RecommenderViews
+from user_based import views as UserBasedViews
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 urlpatterns = [
@@ -54,4 +55,9 @@ urlpatterns = [
     path('recommendations/', RecommenderViews.get_recommendations, name='get-recommendations'),
     path('track-view/', RecommenderViews.track_book_view, name='track-book-view'),
     
+    # User-based рекомендації 
+    path('user-recommendations/', UserBasedViews.get_user_based_recommendations, name='user-based-recommendations'),
+    path('user-recommendations/stats/', UserBasedViews.get_user_based_stats, name='user-based-stats'),
+    path('user-recommendations/refresh/', UserBasedViews.refresh_user_based_recommendations, name='refresh-user-based-recommendations'),
+    path('user-recommendations/model-info/', UserBasedViews.get_user_based_model_info, name='user-based-model-info'),
 ]

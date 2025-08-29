@@ -1225,3 +1225,93 @@ html, body {
 .badge i {
     font-size: 0.8em;
 }
+.user-based-card {
+    transition: all 0.3s ease-in-out;
+    background: #ffffff;
+    border: 1px solid #ced4da;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.user-based-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+    border-color: #4a8bc2;
+}
+
+/* Navigation controls для user-based - консистентні з іншими */
+.user-based-control {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 50px;
+    height: 50px;
+    background: rgba(74,139,194,0.9);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.user-based-control:hover {
+    background: rgba(74,139,194,1);
+    transform: translateY(-50%) scale(1.1);
+}
+
+.user-based-control-prev {
+    left: -25px;
+}
+
+.user-based-control-next {
+    right: -25px;
+}
+
+/* Dots для user-based - консистентні з іншими */
+.user-based-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: none;
+    background: #ced4da;
+    margin: 0 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.user-based-dot.active {
+    background: #4a8bc2;
+    transform: scale(1.2);
+}
+
+.user-based-dot:hover {
+    background: #4a8bc2;
+}
+
+/* Видаляємо старі специфічні стилі */
+.user-based-container,
+.user-based-border-animation,
+.user-based-carousel,
+.ai-sparkle-effect,
+.ai-prediction-badge,
+.book-image-wrapper,
+.user-based-image,
+.user-based-placeholder,
+.user-based-title,
+.user-based-actions,
+.user-based-icon,
+.user-based-badge,
+.user-based-footer {
+    /* Видаляємо всі спеціальні стилі */
+}
+
+/* Responsive для user-based */
+@media (max-width: 768px) {
+    .user-based-control {
+        display: none;
+    }
+}
