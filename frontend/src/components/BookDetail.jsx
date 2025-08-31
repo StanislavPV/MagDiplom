@@ -4,6 +4,7 @@ import axiosInstance from '../axiosInstance'
 import { AuthContext } from '../AuthProvider'
 import Review from './Review'
 import ContRec from './ContRec'
+import UserBased from './UserBased'
 
 const BookDetail = () => {
     const { id } = useParams()
@@ -397,31 +398,37 @@ const BookDetail = () => {
                 </div>
             </div>
 
-            <div className="row mt-4">
-                <div className="col-12">
-                    <div className="card">
-                        <div className="card-header">
-                            <h5><i className="fas fa-align-left"></i> Опис книги</h5>
-                        </div>
-                        <div className="card-body">
-                            <p className="card-text fs-6 lh-lg">{book.description}</p>
-                        </div>
+            {/* Опис книги */}
+            <div className="mt-4">
+                <div className="card">
+                    <div className="card-header">
+                        <h5><i className="fas fa-align-left"></i> Опис книги</h5>
+                    </div>
+                    <div className="card-body">
+                        <p className="card-text fs-6 lh-lg">{book.description}</p>
                     </div>
                 </div>
             </div>
 
-            {/* Рекомендації */}
-            <div className="row mt-4">
-                <div className="col-12">
-                    <ContRec />
+            {/* User-Based рекомендації (тільки для авторизованих) */}
+            {isLoggedIn && (
+                <div className="mt-4">
+                    <UserBased />
                 </div>
+            )}
+
+            {/* Content-Based рекомендації */}
+            <div className="mt-4">
+                <ContRec />
             </div>
 
             {/* Компонент відгуків */}
-            <Review 
-                bookId={parseInt(id)} 
-                onNotification={showNotification} 
-            />
+            <div className="mt-4">
+                <Review 
+                    bookId={parseInt(id)} 
+                    onNotification={showNotification} 
+                />
+            </div>
         </div>
     )
 }

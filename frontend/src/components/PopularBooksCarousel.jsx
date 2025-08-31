@@ -69,20 +69,21 @@ const PopularBooksCarousel = () => {
   }
 
   return (
-    <div className="container mt-5 mb-5">
-      <div className="row">
-        <div className="col-12">
-          <div className="d-flex align-items-center justify-content-between mb-4">
-            <h2 className="fw-bold text-primary mb-0">
-              <i className="fas fa-fire me-2"></i>
-              Популярні книги
-            </h2>
-            <span className="badge bg-warning text-dark fs-6">
-              Топ {popularBooks.length}
-            </span>
-          </div>
+  <div className="container mt-5 mb-5">
+    <div className="row">
+      <div className="col-12">
+        <div className="d-flex align-items-center justify-content-between mb-4">
+          <h2 className="fw-bold mb-0" style={{ color: '#f7931e' }}>
+            <i className="fas fa-fire me-2"></i>
+            Популярні книги
+          </h2>
+          <span className="badge bg-warning text-dark fs-6">
+            <i className="fas fa-crown me-1"></i>
+            Топ {popularBooks.length}
+          </span>
         </div>
       </div>
+    </div>
 
       <div className="position-relative">
         {/* Контейнер карусель */}

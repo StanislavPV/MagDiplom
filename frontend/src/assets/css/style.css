@@ -1315,3 +1315,229 @@ html, body {
         display: none;
     }
 }
+
+
+/* ===========================================
+   ПОПУЛЯРНІ КНИГИ - ЗОЛОТИЙ СТИЛЬ 🔥
+   =========================================== */
+.popular-section {
+    background: linear-gradient(135deg, #fff9e6 0%, #fff3cc 50%, #ffeeaa 100%);
+    border-radius: 20px;
+    padding: 2rem;
+    margin: 2rem 0;
+    border: 2px solid #ffd700;
+    box-shadow: 0 8px 25px rgba(255, 215, 0, 0.2);
+}
+
+.popular-section h2 {
+    color: #f7931e !important;
+    text-shadow: 0 2px 4px rgba(247, 147, 30, 0.3);
+}
+
+.popular-book-card {
+    background: linear-gradient(135deg, #ffffff 0%, #fffdf5 100%);
+    border: 2px solid #ffd700;
+    position: relative;
+    overflow: visible;
+}
+
+.popular-book-card:hover {
+    border-color: #ffb300;
+    box-shadow: 0 15px 35px rgba(255, 193, 7, 0.4);
+}
+
+.popular-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: bold;
+    z-index: 5;
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4);
+    animation: popularPulse 2s infinite;
+}
+
+@keyframes popularPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+.popular-carousel-control {
+    background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+    border: 2px solid white;
+    box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+}
+
+.popular-carousel-control:hover {
+    background: linear-gradient(135deg, #f7931e 0%, #ffb300 100%);
+}
+
+.popular-carousel-dot.active {
+    background: #ff6b35;
+}
+
+/* ===========================================
+   CONTENT-BASED - ЗЕЛЕНИЙ СТИЛЬ 📖
+   =========================================== */
+.content-section {
+    background: linear-gradient(135deg, #e8f5e8 0%, #d1f2d1 50%, #b8e6b8 100%);
+    border-radius: 20px;
+    padding: 2rem;
+    margin: 2rem 0;
+    border: 2px solid #28a745;
+    box-shadow: 0 8px 25px rgba(40, 167, 69, 0.2);
+}
+
+.content-section h2 {
+    color: #28a745 !important;
+    text-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+}
+
+.recommendation-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fff8 100%);
+    border: 2px solid #28a745;
+    position: relative;
+    overflow: visible;
+}
+
+.recommendation-card:hover {
+    border-color: #20c997;
+    box-shadow: 0 15px 35px rgba(40, 167, 69, 0.4);
+}
+
+.content-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: linear-gradient(135deg, #20c997 0%, #28a745 100%);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: bold;
+    z-index: 5;
+    box-shadow: 0 4px 12px rgba(32, 201, 151, 0.4);
+    animation: contentFloat 3s ease-in-out infinite;
+}
+
+@keyframes contentFloat {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-3px); }
+}
+
+.recommendation-control {
+    background: linear-gradient(135deg, #20c997 0%, #28a745 100%);
+    border: 2px solid white;
+    box-shadow: 0 6px 20px rgba(32, 201, 151, 0.4);
+}
+
+.recommendation-control:hover {
+    background: linear-gradient(135deg, #28a745 0%, #17a2b8 100%);
+}
+
+.recommendation-dot.active {
+    background: #20c997;
+}
+
+/* ===========================================
+   USER-BASED - ФІОЛЕТОВИЙ СТИЛЬ ✨
+   =========================================== */
+.user-based-section {
+    background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 50%, #d8b4fe 100%);
+    border-radius: 20px;
+    padding: 2rem;
+    margin: 2rem 0;
+    border: 2px solid #8b5cf6;
+    box-shadow: 0 8px 25px rgba(139, 92, 246, 0.2);
+}
+
+.user-based-section h2 {
+    color: #8b5cf6 !important;
+    text-shadow: 0 2px 4px rgba(139, 92, 246, 0.3);
+}
+
+.user-based-card {
+    background: linear-gradient(135deg, #ffffff 0%, #fefbff 100%);
+    border: 2px solid #8b5cf6;
+    position: relative;
+    overflow: visible;
+}
+
+.user-based-card:hover {
+    border-color: #a78bfa;
+    box-shadow: 0 15px 35px rgba(139, 92, 246, 0.4);
+}
+
+.personal-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: bold;
+    z-index: 5;
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+    animation: personalShimmer 2s linear infinite;
+}
+
+@keyframes personalShimmer {
+    0% { box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4); }
+    50% { box-shadow: 0 6px 18px rgba(167, 139, 250, 0.6); }
+    100% { box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4); }
+}
+
+.user-based-control {
+    background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%);
+    border: 2px solid white;
+    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+}
+
+.user-based-control:hover {
+    background: linear-gradient(135deg, #a78bfa 0%, #c4b5fd 100%);
+}
+
+.user-based-dot.active {
+    background: #8b5cf6;
+}
+
+/* Спільні стилі для бейджів */
+.carousel-badge {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Responsive для всіх каруселей */
+@media (max-width: 768px) {
+    .popular-section,
+    .content-section,
+    .user-based-section {
+        padding: 1rem;
+        margin: 1rem 0;
+    }
+    
+    .popular-badge,
+    .content-badge,
+    .personal-badge {
+        position: static;
+        margin: 0 auto 10px auto;
+        display: inline-block;
+    }
+    
+    .popular-carousel-control,
+    .recommendation-control,
+    .user-based-control {
+        display: none;
+    }
+}

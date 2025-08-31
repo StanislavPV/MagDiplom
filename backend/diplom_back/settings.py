@@ -48,7 +48,8 @@ INSTALLED_APPS = [
     'ratings',
     'cart',
     'orders',
-    'recommender'
+    'recommender',
+    'user_based',
 
 ]
 
@@ -163,3 +164,14 @@ SIMPLE_JWT = {
 
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'recommendations-cache',
+        'TIMEOUT': 300,
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000,
+        }
+    }
+}

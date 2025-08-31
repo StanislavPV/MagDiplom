@@ -215,19 +215,19 @@ const UserBased = () => {
       )}
 
       <div className="row">
-        <div className="col-12">
-          <div className="d-flex align-items-center justify-content-between mb-4">
-            <h2 className="fw-bold text-primary mb-0">
-              <i className="fas fa-users me-2"></i>
-              Персональні рекомендації
-            </h2>
-            <span className="badge bg-primary fs-6">
-              <i className="fas fa-user-check me-1"></i>
-              Для вас
-            </span>
-          </div>
+      <div className="col-12">
+        <div className="d-flex align-items-center justify-content-between mb-4">
+          <h2 className="fw-bold mb-0" style={{ color: '#8b5cf6' }}>
+            <i className="fas fa-users me-2"></i>
+            Персональні рекомендації
+          </h2>
+          <span className="badge fs-6" style={{ backgroundColor: '#8b5cf6', color: 'white' }}>
+            <i className="fas fa-user-check me-1"></i>
+            Для вас
+          </span>
         </div>
       </div>
+    </div>
 
       <div className="position-relative">
         {/* Carousel Container */}

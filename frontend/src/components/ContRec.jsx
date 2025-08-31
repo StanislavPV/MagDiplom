@@ -164,21 +164,22 @@ const ContRec = () => {
 
   const viewedBooksCount = getViewedBooks().length
 
-  return (
-    <div className="container mt-5 mb-5">
-      <div className="row">
-        <div className="col-12">
-          <div className="d-flex align-items-center justify-content-between mb-4">
-            <h2 className="fw-bold text-primary mb-0">
-              <i className="fas fa-magic me-2"></i>
-              Вас може зацікавити
-            </h2>
-            <span className="badge bg-info fs-6">
-              На основі переглядів
-            </span>
-          </div>
+ return (
+  <div className="container mt-5 mb-5">
+    <div className="row">
+      <div className="col-12">
+        <div className="d-flex align-items-center justify-content-between mb-4">
+          <h2 className="fw-bold mb-0" style={{ color: '#28a745' }}>
+            <i className="fas fa-magic me-2"></i>
+            Вас може зацікавити
+          </h2>
+          <span className="badge text-white fs-6" style={{ backgroundColor: '#28a745' }}>
+            <i className="fas fa-book-open me-1"></i>
+            На основі переглядів
+          </span>
         </div>
       </div>
+    </div>
 
       <div className="position-relative">
         {/* Carousel Container */}
