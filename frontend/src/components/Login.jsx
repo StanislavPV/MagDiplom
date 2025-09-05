@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faSpinner } from '@fortawesome/free-solid-svg-icons'
 import axios from 'axios'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { AuthContext } from '../AuthProvider'
 import { useContext } from 'react'
 
@@ -43,7 +43,7 @@ const Login = () => {
             <div className='auth-container'>
               <div className='auth-form'>
                 <div className='text-center mb-4'>
-                  <h3 className='fw-bold text-primary'>📚 Вхід в систему</h3>
+                  <h3 className='fw-bold text-primary'>Вхід в систему</h3>
                   <p className='text-muted'>Увійдіть до свого акаунту</p>
                 </div>
                 
@@ -60,7 +60,7 @@ const Login = () => {
                     />
                   </div>
                   
-                  <div className='mb-4'>
+                  <div className='mb-3'>
                     <label className='form-label fw-semibold'>Пароль</label>
                     <input 
                       type='password' 
@@ -79,7 +79,7 @@ const Login = () => {
                     </div>
                   )}
                   
-                  <div className='d-grid'>
+                  <div className='d-grid mb-3'>
                     {loading ? (
                       <button type='submit' className='btn btn-primary btn-lg' disabled>
                         <FontAwesomeIcon icon={faSpinner} spin className='me-2' />
@@ -93,6 +93,22 @@ const Login = () => {
                     )}
                   </div>
                 </form>
+
+                <div className='text-center mb-4'>
+                  <Link to='/reset-password' className='text-decoration-none text-primary'>
+                    <i className='fas fa-key me-2'></i>
+                    Забули пароль?
+                  </Link>
+                </div>
+
+                <hr className='my-4' />
+
+                <div className='text-center'>
+                  <p className='text-muted mb-0'>Ще немає акаунту?</p>
+                  <Link to='/register' className='text-decoration-none text-primary fw-semibold'>
+                    Створити акаунт
+                  </Link>
+                </div>
               </div>
             </div>
           </div>

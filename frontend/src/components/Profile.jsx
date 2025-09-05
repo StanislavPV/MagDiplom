@@ -6,18 +6,25 @@ import axiosInstance from '../axiosInstance'
 const Profile = () => {
     const { isLoggedIn } = useContext(AuthContext)
     const location = useLocation()
-    const [activeTab, setActiveTab] = useState('wishlist')
+    const [activeTab, setActiveTab] = useState('profile')
     const [wishlist, setWishlist] = useState([])
     const [ratings, setRatings] = useState([])
     const [orders, setOrders] = useState([])
     const [loading, setLoading] = useState(true)
     const [user, setUser] = useState(null)
+    const [editMode, setEditMode] = useState(false)
+    const [editForm, setEditForm] = useState({
+        name: '',
+        phone_number: ''
+    })
+    const [updateMessage, setUpdateMessage] = useState('')
+    const [errors, setErrors] = useState({})
 
     useEffect(() => {
         // Check URL for tab parameter
         const params = new URLSearchParams(location.search)
         const tab = params.get('tab')
-        if (tab && ['wishlist', 'ratings', 'orders'].includes(tab)) {
+        if (tab && ['profile', 'wishlist', 'ratings', 'orders'].includes(tab)) {
             setActiveTab(tab)
         }
 
@@ -33,8 +40,65 @@ const Profile = () => {
         try {
             const response = await axiosInstance.get('/protected-view/')
             setUser(response.data.user)
+            setEditForm({
+                name: response.data.user.name || '',
+                phone_number: response.data.user.phone_number || ''
+            })
         } catch (error) {
             console.error('Error fetching user data:', error)
+        }
+    }
+
+    const handleEditProfile = () => {
+        setEditMode(true)
+        setUpdateMessage('')
+        setErrors({})
+    }
+
+    const handleCancelEdit = () => {
+        setEditMode(false)
+        setEditForm({
+            name: user.name || '',
+            phone_number: user.phone_number || ''
+        })
+        setErrors({})
+        setUpdateMessage('')
+    }
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target
+        setEditForm(prev => ({
+            ...prev,
+            [name]: value
+        }))
+        // Очищаємо помилку для поля при введенні
+        if (errors[name]) {
+            setErrors(prev => ({
+                ...prev,
+                [name]: null
+            }))
+        }
+    }
+
+    const handleSaveProfile = async (e) => {
+        e.preventDefault()
+        setErrors({})
+        
+        try {
+            const response = await axiosInstance.patch('/profile/', editForm)
+            if (response.data.success) {
+                setUser(response.data.user)
+                setEditMode(false)
+                setUpdateMessage('Профіль успішно оновлено!')
+                setTimeout(() => setUpdateMessage(''), 3000)
+            }
+        } catch (error) {
+            if (error.response?.data?.errors) {
+                setErrors(error.response.data.errors)
+            } else {
+                setUpdateMessage('Помилка при оновленні профілю')
+                setTimeout(() => setUpdateMessage(''), 3000)
+            }
         }
     }
 
@@ -131,6 +195,14 @@ const Profile = () => {
                     <ul className="nav nav-tabs mb-4">
                         <li className="nav-item">
                             <button
+                                className={`nav-link ${activeTab === 'profile' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('profile')}
+                            >
+                                <i className="fas fa-user"></i> Профіль
+                            </button>
+                        </li>
+                        <li className="nav-item">
+                            <button
                                 className={`nav-link ${activeTab === 'wishlist' ? 'active' : ''}`}
                                 onClick={() => setActiveTab('wishlist')}
                             >
@@ -160,6 +232,116 @@ const Profile = () => {
             {/* Tab Content */}
             <div className="row">
                 <div className="col-12">
+                    {activeTab === 'profile' && (
+                        <div className="card">
+                            <div className="card-header d-flex justify-content-between align-items-center">
+                                <h5><i className="fas fa-user"></i> Особисті дані</h5>
+                                {!editMode && (
+                                    <button 
+                                        className="btn btn-outline-primary btn-sm"
+                                        onClick={handleEditProfile}
+                                    >
+                                        <i className="fas fa-edit"></i> Редагувати
+                                    </button>
+                                )}
+                            </div>
+                            <div className="card-body">
+                                {updateMessage && (
+                                    <div className={`alert ${updateMessage.includes('успішно') ? 'alert-success' : 'alert-danger'}`}>
+                                        {updateMessage}
+                                    </div>
+                                )}
+                                
+                                {!editMode ? (
+                                    <div className="row">
+                                        <div className="col-md-6">
+                                            <div className="mb-3">
+                                                <label className="form-label fw-bold">Email:</label>
+                                                <p className="form-control-plaintext">{user?.email}</p>
+                                            </div>
+                                            <div className="mb-3">
+                                                <label className="form-label fw-bold">Ім'я:</label>
+                                                <p className="form-control-plaintext">{user?.name || 'Не вказано'}</p>
+                                            </div>
+                                            <div className="mb-3">
+                                                <label className="form-label fw-bold">Телефон:</label>
+                                                <p className="form-control-plaintext">
+                                                    {user?.phone_number ? `+380${user.phone_number}` : 'Не вказано'}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <form onSubmit={handleSaveProfile}>
+                                        <div className="row">
+                                            <div className="col-md-6">
+                                                <div className="mb-3">
+                                                    <label className="form-label fw-bold">Email:</label>
+                                                    <input 
+                                                        type="email" 
+                                                        className="form-control" 
+                                                        value={user?.email || ''} 
+                                                        disabled 
+                                                    />
+                                                    <small className="text-muted">Email не можна змінювати</small>
+                                                </div>
+                                                <div className="mb-3">
+                                                    <label className="form-label fw-bold">Ім'я:</label>
+                                                    <input
+                                                        type="text"
+                                                        name="name"
+                                                        className={`form-control ${errors.name ? 'is-invalid' : ''}`}
+                                                        value={editForm.name}
+                                                        onChange={handleInputChange}
+                                                        placeholder="Введіть ваше ім'я"
+                                                    />
+                                                    {errors.name && (
+                                                        <div className="invalid-feedback">
+                                                            {errors.name.join(', ')}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="mb-3">
+                                                    <label className="form-label fw-bold">Телефон:</label>
+                                                    <div className="input-group">
+                                                        <span className="input-group-text">+380</span>
+                                                        <input
+                                                            type="text"
+                                                            name="phone_number"
+                                                            className={`form-control ${errors.phone_number ? 'is-invalid' : ''}`}
+                                                            value={editForm.phone_number}
+                                                            onChange={handleInputChange}
+                                                            placeholder="123456789"
+                                                            maxLength={9}
+                                                        />
+                                                        {errors.phone_number && (
+                                                            <div className="invalid-feedback">
+                                                                {errors.phone_number.join(', ')}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <small className="text-muted">Введіть 9 цифр без коду країни</small>
+                                                </div>
+                                                <div className="d-flex gap-2">
+                                                    <button type="submit" className="btn btn-success">
+                                                        <i className="fas fa-save"></i> Зберегти
+                                                    </button>
+                                                    <button 
+                                                        type="button" 
+                                                        className="btn btn-secondary"
+                                                        onClick={handleCancelEdit}
+                                                    >
+                                                        <i className="fas fa-times"></i> Скасувати
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
                     {activeTab === 'wishlist' && (
                         <div className="card">
                             <div className="card-header">

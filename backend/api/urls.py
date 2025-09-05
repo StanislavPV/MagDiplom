@@ -15,6 +15,12 @@ urlpatterns = [
     path('login/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('protected-view/', UserViews.ProtectedView.as_view(), name='protected_view'),
     
+    # Профіль користувача
+    path('profile/', UserViews.UserProfileView.as_view(), name='user-profile'),
+    
+    # Скидання паролю
+    path('reset-password/', UserViews.reset_password, name='reset-password'),
+    
     # Книги
     path('books/', BookViews.BookListView.as_view(), name='book-list'),
     path('books/<int:pk>/', BookViews.BookDetailView.as_view(), name='book-detail'),
