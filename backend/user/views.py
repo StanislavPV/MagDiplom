@@ -56,7 +56,6 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def reset_password(request):
-    """Скидання паролю без токенів"""
     serializer = PasswordResetSerializer(data=request.data)
     
     if serializer.is_valid():
