@@ -1292,22 +1292,6 @@ html, body {
     background: #4a8bc2;
 }
 
-/* Видаляємо старі специфічні стилі */
-.user-based-container,
-.user-based-border-animation,
-.user-based-carousel,
-.ai-sparkle-effect,
-.ai-prediction-badge,
-.book-image-wrapper,
-.user-based-image,
-.user-based-placeholder,
-.user-based-title,
-.user-based-actions,
-.user-based-icon,
-.user-based-badge,
-.user-based-footer {
-    /* Видаляємо всі спеціальні стилі */
-}
 
 /* Responsive для user-based */
 @media (max-width: 768px) {
@@ -1318,7 +1302,7 @@ html, body {
 
 
 /* ===========================================
-   ПОПУЛЯРНІ КНИГИ - ЗОЛОТИЙ СТИЛЬ 🔥
+   ПОПУЛЯРНІ КНИГИ - ЗОЛОТИЙ СТИЛЬ
    =========================================== */
 .popular-section {
     background: linear-gradient(135deg, #fff9e6 0%, #fff3cc 50%, #ffeeaa 100%);
