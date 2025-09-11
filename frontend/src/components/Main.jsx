@@ -416,9 +416,7 @@ const Main = () => {
                   <i className="fas fa-book-open me-2"></i>
                   {getPageTitle()}
                 </h2>
-                <span className="badge bg-primary fs-6">
-                  Кількість: {pagination.count || books.length}
-                </span>
+                
               </div>
             </div>
 
