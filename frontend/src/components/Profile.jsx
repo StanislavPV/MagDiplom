@@ -181,7 +181,7 @@ const Profile = () => {
                                 </div>
                                 <div>
                                     <h4 className="mb-1">{user?.name || 'Ваш профіль'}</h4>
-                                    <p className="text-muted mb-0">{user?.email}</p>
+                                    
                                 </div>
                             </div>
                         </div>
