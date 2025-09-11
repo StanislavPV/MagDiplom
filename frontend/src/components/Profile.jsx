@@ -206,7 +206,7 @@ const Profile = () => {
                                 className={`nav-link ${activeTab === 'wishlist' ? 'active' : ''}`}
                                 onClick={() => setActiveTab('wishlist')}
                             >
-                                <i className="fas fa-heart"></i> Обране ({wishlist.length})
+                                <i className="fas fa-heart"></i> Бажане ({wishlist.length})
                             </button>
                         </li>
                         <li className="nav-item">
